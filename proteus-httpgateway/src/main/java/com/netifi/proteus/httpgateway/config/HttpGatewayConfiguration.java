@@ -15,34 +15,14 @@
  */
 package com.netifi.proteus.httpgateway.config;
 
-import com.netifi.proteus.httpgateway.http.HttpGatewayHandler;
 import com.netifi.proteus.httpgateway.registry.FileSystemServiceRegistry;
 import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
 import io.netifi.proteus.Proteus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.ServerResponse;
-
-import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
-import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
 public class HttpGatewayConfiguration {
-
-    @Bean
-    public RouterFunction<ServerResponse> groupRoute(HttpGatewayHandler handler) {
-        return route(POST("/{group}/{service}/{method}")
-                .and(accept(MediaType.APPLICATION_JSON)), handler::handleGroup);
-    }
-
-    @Bean
-    public RouterFunction<ServerResponse> destinationRoute(HttpGatewayHandler handler) {
-        return route(POST("/{group}/{destination}/{service}/{method}")
-                .and(accept(MediaType.APPLICATION_JSON)), handler::handleDestination);
-    }
 
     @Bean
     public ServiceRegistry serviceRegistry() {

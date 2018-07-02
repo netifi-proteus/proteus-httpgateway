@@ -18,8 +18,15 @@ package com.netifi.proteus.httpgateway.registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+
 public class FileSystemServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServiceRegistry.class);
+
+    @PostConstruct
+    private void init() {
+
+    }
 
     @Override
     public boolean isRegistered(String service, String method) {

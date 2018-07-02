@@ -15,6 +15,10 @@ public class HttpErrorResponse implements Serializable {
     private String timestamp;
     private String message;
 
+    private HttpErrorResponse() {
+
+    }
+
     public static HttpErrorResponse of(HttpStatus httpStatus, String message) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)
                 .withZone(ZoneId.systemDefault());
@@ -24,6 +28,32 @@ public class HttpErrorResponse implements Serializable {
         response.setHttpStatusMessage(httpStatus.getReasonPhrase());
         response.setTimestamp(dtf.format(Instant.now()));
         response.setMessage(message);
+
+        return response;
+    }
+
+    public static HttpErrorResponse of(HttpStatus httpStatus, Throwable throwable) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)
+                .withZone(ZoneId.systemDefault());
+
+        HttpErrorResponse response = new HttpErrorResponse();
+        response.setHttpStatus(httpStatus.value());
+        response.setHttpStatusMessage(httpStatus.getReasonPhrase());
+        response.setTimestamp(dtf.format(Instant.now()));
+        response.setMessage(throwable.getMessage());
+
+        return response;
+    }
+
+    public static HttpErrorResponse of(Throwable throwable) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)
+                .withZone(ZoneId.systemDefault());
+
+        HttpErrorResponse response = new HttpErrorResponse();
+        response.setHttpStatus(HttpStatus.BAD_GATEWAY.value());
+        response.setHttpStatusMessage(HttpStatus.BAD_GATEWAY.getReasonPhrase());
+        response.setTimestamp(dtf.format(Instant.now()));
+        response.setMessage(throwable.getMessage());
 
         return response;
     }
