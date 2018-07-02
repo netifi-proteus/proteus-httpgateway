@@ -56,8 +56,17 @@ public class HttpGatewayHandler {
         if (serviceRegistry.isRegistered(service, method)) {
             return serviceInvocationFactory.create(serverRequest, group, service, method)
                     .invoke()
-                    .flatMap(serviceInvocationResult -> {
-                        return ServerResponse.ok().build();
+                    .flatMap(result -> {
+                        if (result.isSuccess()) {
+                            return ServerResponse.ok().build();
+                        } else {
+                            HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
+
+                            return ServerResponse
+                                    .status(HttpStatus.BAD_GATEWAY)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .syncBody(response);
+                        }
                     });
         } else {
             LOGGER.error("Requested Service/Method Not Found! [group='{}', service='{}', method='{}']", group, service, method);
@@ -87,8 +96,17 @@ public class HttpGatewayHandler {
         if (serviceRegistry.isRegistered(service, method)) {
             return serviceInvocationFactory.create(serverRequest, group, destination, service, method)
                     .invoke()
-                    .flatMap(serviceInvocationResult -> {
-                        return ServerResponse.ok().build();
+                    .flatMap(result -> {
+                        if (result.isSuccess()) {
+                            return ServerResponse.ok().build();
+                        } else {
+                            HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
+
+                            return ServerResponse
+                                    .status(HttpStatus.BAD_GATEWAY)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .syncBody(response);
+                        }
                     });
         } else {
             LOGGER.error("Requested Service/Method Not Found! [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
