@@ -15,12 +15,16 @@
  */
 package com.netifi.proteus.httpgateway.config;
 
+import com.netifi.proteus.httpgateway.Main;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.system.ApplicationHome;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Component
 @ConfigurationProperties("netifi.httpgateway")
@@ -28,11 +32,21 @@ public class HttpGatewaySettings {
     public static final String DEFAULT_GROUP = "proteus.httpgateway";
 
     private String group;
+    private String directory;
 
     @PostConstruct
     public void init() {
         if (StringUtils.isEmpty(group)) {
             group = DEFAULT_GROUP;
+        }
+
+        if (StringUtils.isEmpty(directory)) {
+            ApplicationHome home = new ApplicationHome(Main.class);
+            directory = home.getDir().getAbsolutePath();
+        } else {
+            if (!Files.isDirectory(Paths.get(directory))) {
+                new RuntimeException(String.format("The 'netifi.httpgateway.directory' property is not a valid directory! [value='%s']", directory), new FileNotFoundException());
+            }
         }
     }
 
@@ -42,5 +56,13 @@ public class HttpGatewaySettings {
 
     public void setGroup(String group) {
         this.group = group;
+    }
+
+    public String getDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(String directory) {
+        this.directory = directory;
     }
 }

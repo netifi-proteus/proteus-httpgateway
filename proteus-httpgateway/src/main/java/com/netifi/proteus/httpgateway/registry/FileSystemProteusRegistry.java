@@ -15,13 +15,20 @@
  */
 package com.netifi.proteus.httpgateway.registry;
 
+import com.netifi.proteus.httpgateway.config.HttpGatewaySettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 
-public class FileSystemServiceRegistry implements ServiceRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServiceRegistry.class);
+public class FileSystemProteusRegistry implements ProteusRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemProteusRegistry.class);
+
+    private final HttpGatewaySettings settings;
+
+    public FileSystemProteusRegistry(HttpGatewaySettings settings) {
+        this.settings = settings;
+    }
 
     @PostConstruct
     private void init() {
@@ -29,7 +36,12 @@ public class FileSystemServiceRegistry implements ServiceRegistry {
     }
 
     @Override
-    public boolean isRegistered(String service, String method) {
+    public boolean isRegisteredService(final String service, final String method) {
+        return false;
+    }
+
+    @Override
+    public boolean isRegisteredService(final Key key) {
         return false;
     }
 }

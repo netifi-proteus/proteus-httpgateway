@@ -15,9 +15,8 @@
  */
 package com.netifi.proteus.httpgateway.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netifi.proteus.httpgateway.registry.FileSystemServiceRegistry;
-import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
+import com.netifi.proteus.httpgateway.registry.FileSystemProteusRegistry;
+import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
 import io.netifi.proteus.Proteus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +25,8 @@ import org.springframework.context.annotation.Configuration;
 public class HttpGatewayConfiguration {
 
     @Bean
-    public ServiceRegistry serviceRegistry() {
-        return new FileSystemServiceRegistry();
+    public ProteusRegistry serviceRegistry(HttpGatewaySettings settings) {
+        return new FileSystemProteusRegistry(settings);
     }
 
     @Bean

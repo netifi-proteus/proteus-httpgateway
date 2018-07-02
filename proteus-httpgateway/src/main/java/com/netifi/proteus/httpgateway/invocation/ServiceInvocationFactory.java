@@ -16,7 +16,7 @@
 package com.netifi.proteus.httpgateway.invocation;
 
 import com.netifi.proteus.httpgateway.config.ProteusSettings;
-import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
+import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +26,11 @@ import org.springframework.stereotype.Component;
 public class ServiceInvocationFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceInvocationFactory.class);
 
-    private final ServiceRegistry serviceRegistry;
+    private final ProteusRegistry serviceRegistry;
     private final ProteusSettings proteusSettings;
 
     @Autowired
-    public ServiceInvocationFactory(ServiceRegistry serviceRegistry, ProteusSettings proteusSettings) {
+    public ServiceInvocationFactory(ProteusRegistry serviceRegistry, ProteusSettings proteusSettings) {
         this.serviceRegistry = serviceRegistry;
         this.proteusSettings = proteusSettings;
     }
