@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netifi.proteus.httpgateway.invocation;
+package com.netifi.proteus.demo.helloworld;
 
-import io.netifi.proteus.rsocket.ProteusSocket;
+import io.netty.buffer.ByteBuf;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-public class ServiceInvocation {
+@Component
+public class DefaultHelloWorldService implements HelloWorldService {
 
-    public ServiceInvocation(ProteusSocket proteusSocket) {
-
-    }
-
-    public Mono<ServiceInvocationResult> invoke(Object body) {
-        throw new RuntimeException("This is a test");
+    @Override
+    public Mono<HelloResponse> sayHello(HelloRequest message, ByteBuf metadata) {
+        return Mono.fromSupplier(() -> HelloResponse.newBuilder()
+                .setMessage("Hello, " + message.getName() + "!")
+                .build());
     }
 }

@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netifi.proteus.httpgateway.invocation;
+package com.netifi.proteus.demo.helloworld;
 
-import io.netifi.proteus.rsocket.ProteusSocket;
-import reactor.core.publisher.Mono;
+import com.netifi.proteus.springboot.EnableProteus;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public class ServiceInvocation {
+@SpringBootApplication
+@EnableProteus(group = "demo.helloworld.services")
+public class Main {
 
-    public ServiceInvocation(ProteusSocket proteusSocket) {
-
-    }
-
-    public Mono<ServiceInvocationResult> invoke(Object body) {
-        throw new RuntimeException("This is a test");
+    public static void main(String... args) {
+        SpringApplication.run(Main.class, args);
     }
 }
