@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.springframework.boot' version '2.0.0.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.5.RELEASE'
+}
+
+sourceCompatibility = 1.8
+mainClassName = 'com.netifi.proteus.httpgateway.Main'
+
+dependencyManagement {
+    imports {
+        mavenBom "io.spring.platform:platform-bom:${springbomVersion}"
+    }
+}
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-webflux'
+    compile "io.netifi.proteus:client:${proteusVersion}"
+    compile "com.google.protobuf:protobuf-java:${protobufVersion}"
+}
+
+// TODO: Remove this once we shade Guava inside Proteus
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
+        }
+    }
+}

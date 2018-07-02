@@ -1,0 +1,12 @@
+rootProject.name = 'proteus-httpgateway'
+
+// Dynamically includes all Gradle projects found within the root project
+fileTree('.') {
+    include '**/build.gradle'
+    exclude 'build.gradle'      // Exclude the root project
+}.collect {
+    relativePath(it.parent).replace(File.separator, ':')
+}
+.each {
+    include(it)
+}
