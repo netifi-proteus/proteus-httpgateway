@@ -15,8 +15,8 @@
  */
 package com.netifi.proteus.httpgateway.http;
 
-import com.netifi.proteus.httpgateway.invocation.ServiceInvoker;
-import com.netifi.proteus.httpgateway.invocation.ServiceInvokerFactory;
+import com.netifi.proteus.httpgateway.invocation.ServiceInvocation;
+import com.netifi.proteus.httpgateway.invocation.ServiceInvocationFactory;
 import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class HttpGatewayHandler {
     private ServiceRegistry serviceRegistry;
 
     @Autowired
-    private ServiceInvokerFactory serviceInvokerFactory;
+    private ServiceInvocationFactory serviceInvocationFactory;
 
     /**
      *
@@ -54,9 +54,11 @@ public class HttpGatewayHandler {
         LOGGER.debug("Received Group Request [group='{}', service='{}', method='{}']", group, service, method);
 
         if (serviceRegistry.isRegistered(service, method)) {
-            ServiceInvoker invoker = serviceInvokerFactory.create(serverRequest, group, service, method);
-
-            return ServerResponse.ok().build();
+            return serviceInvocationFactory.create(serverRequest, group, service, method)
+                    .invoke()
+                    .flatMap(serviceInvocationResult -> {
+                        return ServerResponse.ok().build();
+                    });
         } else {
             LOGGER.error("Requested Service/Method Not Found! [group='{}', service='{}', method='{}']", group, service, method);
 
@@ -83,9 +85,11 @@ public class HttpGatewayHandler {
         LOGGER.debug("Received Destination Request [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
 
         if (serviceRegistry.isRegistered(service, method)) {
-            ServiceInvoker invoker = serviceInvokerFactory.create(serverRequest, group, destination, service, method);
-
-            return ServerResponse.ok().build();
+            return serviceInvocationFactory.create(serverRequest, group, destination, service, method)
+                    .invoke()
+                    .flatMap(serviceInvocationResult -> {
+                        return ServerResponse.ok().build();
+                    });
         } else {
             LOGGER.error("Requested Service/Method Not Found! [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
 

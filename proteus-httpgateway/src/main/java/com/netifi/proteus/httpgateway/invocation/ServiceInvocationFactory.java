@@ -9,23 +9,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 
 @Component
-public class ServiceInvokerFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceInvokerFactory.class);
+public class ServiceInvocationFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceInvocationFactory.class);
 
     private final ServiceRegistry serviceRegistry;
     private final ProteusSettings proteusSettings;
 
     @Autowired
-    public ServiceInvokerFactory(ServiceRegistry serviceRegistry, ProteusSettings proteusSettings) {
+    public ServiceInvocationFactory(ServiceRegistry serviceRegistry, ProteusSettings proteusSettings) {
         this.serviceRegistry = serviceRegistry;
         this.proteusSettings = proteusSettings;
     }
 
-    public ServiceInvoker create(ServerRequest request, String group, String service, String method) {
+    public ServiceInvocation create(ServerRequest request, String group, String service, String method) {
         return null;
     }
 
-    public ServiceInvoker create(ServerRequest request, String group, String destination, String service, String method) {
+    public ServiceInvocation create(ServerRequest request, String group, String destination, String service, String method) {
         return null;
     }
 }
