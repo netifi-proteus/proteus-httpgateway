@@ -15,6 +15,7 @@
  */
 package com.netifi.proteus.httpgateway.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netifi.proteus.httpgateway.registry.FileSystemServiceRegistry;
 import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
 import io.netifi.proteus.Proteus;

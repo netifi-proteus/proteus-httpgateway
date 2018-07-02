@@ -15,6 +15,8 @@
  */
 package com.netifi.proteus.httpgateway.http;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
@@ -22,15 +24,28 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+@JsonPropertyOrder(value = {
+        "httpStatus",
+        "httpStatusMessage",
+        "timestamp",
+        "message"
+})
 public class HttpErrorResponse implements Serializable {
     private static final String TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
+    @JsonProperty
     private Integer httpStatus;
+
+    @JsonProperty
     private String httpStatusMessage;
+
+    @JsonProperty
     private String timestamp;
+
+    @JsonProperty
     private String message;
 
-    private HttpErrorResponse() {
+    public HttpErrorResponse() {
 
     }
 
