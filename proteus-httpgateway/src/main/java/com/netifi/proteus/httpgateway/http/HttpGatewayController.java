@@ -38,9 +38,6 @@ public class HttpGatewayController {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpGatewayController.class);
 
     @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
     private ServiceInvocationFactory serviceInvocationFactory;
 
     @PostMapping(value = "/{group}/{service}/{method}",
@@ -49,7 +46,7 @@ public class HttpGatewayController {
     public Mono<ResponseEntity> requestReplyGroup(@PathVariable("group") String group,
                                                   @PathVariable("service") String service,
                                                   @PathVariable("method") String method,
-                                                  @RequestBody Object body) {
+                                                  @RequestBody String body) {
         LOGGER.debug("Received Group Request [group='{}', service='{}', method='{}']", group, service, method);
 
         return serviceInvocationFactory.create(group, service, method)
@@ -73,7 +70,7 @@ public class HttpGatewayController {
                                                         @PathVariable("destination") String destination,
                                                         @PathVariable("service") String service,
                                                         @PathVariable("method") String method,
-                                                        @RequestBody Object body) {
+                                                        @RequestBody String body) {
         LOGGER.debug("Received Destination Request [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
 
         return serviceInvocationFactory.create(group,destination, service, method)
