@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.server.ServerRequest;
 
 @Component
 public class ServiceInvocationFactory {
@@ -21,11 +20,11 @@ public class ServiceInvocationFactory {
         this.proteusSettings = proteusSettings;
     }
 
-    public ServiceInvocation create(ServerRequest request, String group, String service, String method) {
+    public ServiceInvocation create(String group, String service, String method) {
         return null;
     }
 
-    public ServiceInvocation create(ServerRequest request, String group, String destination, String service, String method) {
+    public ServiceInvocation create(String group, String destination, String service, String method) {
         return null;
     }
 }

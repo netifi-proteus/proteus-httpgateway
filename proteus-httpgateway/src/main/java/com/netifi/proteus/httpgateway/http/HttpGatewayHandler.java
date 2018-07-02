@@ -15,8 +15,8 @@
  */
 package com.netifi.proteus.httpgateway.http;
 
-import com.netifi.proteus.httpgateway.invocation.ServiceInvocation;
 import com.netifi.proteus.httpgateway.invocation.ServiceInvocationFactory;
+import com.netifi.proteus.httpgateway.invocation.ServiceInvocationResult;
 import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +27,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoSink;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  *
@@ -34,9 +38,6 @@ import reactor.core.publisher.Mono;
 @Component
 public class HttpGatewayHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpGatewayHandler.class);
-
-    @Autowired
-    private ServiceRegistry serviceRegistry;
 
     @Autowired
     private ServiceInvocationFactory serviceInvocationFactory;
@@ -53,31 +54,20 @@ public class HttpGatewayHandler {
 
         LOGGER.debug("Received Group Request [group='{}', service='{}', method='{}']", group, service, method);
 
-        if (serviceRegistry.isRegistered(service, method)) {
-            return serviceInvocationFactory.create(serverRequest, group, service, method)
-                    .invoke()
-                    .flatMap(result -> {
-                        if (result.isSuccess()) {
-                            return ServerResponse.ok().build();
-                        } else {
-                            HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
+        return serviceInvocationFactory.create(group, service, method)
+                .invoke(serverRequest)
+                .flatMap(result -> {
+                    if (result.isSuccess()) {
+                        return ServerResponse.ok().build();
+                    } else {
+                        HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
 
-                            return ServerResponse
-                                    .status(HttpStatus.BAD_GATEWAY)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .syncBody(response);
-                        }
-                    });
-        } else {
-            LOGGER.error("Requested Service/Method Not Found! [group='{}', service='{}', method='{}']", group, service, method);
-
-            HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "The requested service/method is not registered.");
-
-            return ServerResponse
-                    .status(HttpStatus.BAD_GATEWAY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .syncBody(response);
-        }
+                        return ServerResponse
+                                .status(HttpStatus.BAD_GATEWAY)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .syncBody(response);
+                    }
+                });
     }
 
     /**
@@ -93,30 +83,19 @@ public class HttpGatewayHandler {
 
         LOGGER.debug("Received Destination Request [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
 
-        if (serviceRegistry.isRegistered(service, method)) {
-            return serviceInvocationFactory.create(serverRequest, group, destination, service, method)
-                    .invoke()
-                    .flatMap(result -> {
-                        if (result.isSuccess()) {
-                            return ServerResponse.ok().build();
-                        } else {
-                            HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
+        return serviceInvocationFactory.create(group, destination, service, method)
+                .invoke(serverRequest)
+                .flatMap(result -> {
+                    if (result.isSuccess()) {
+                        return ServerResponse.ok().build();
+                    } else {
+                        HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
 
-                            return ServerResponse
-                                    .status(HttpStatus.BAD_GATEWAY)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .syncBody(response);
-                        }
-                    });
-        } else {
-            LOGGER.error("Requested Service/Method Not Found! [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
-
-            HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "The requested service/method is not registered.");
-
-            return ServerResponse
-                    .status(HttpStatus.BAD_GATEWAY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .syncBody(response);
-        }
+                        return ServerResponse
+                                .status(HttpStatus.BAD_GATEWAY)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .syncBody(response);
+                    }
+                });
     }
 }
