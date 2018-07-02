@@ -15,7 +15,6 @@
  */
 package com.netifi.proteus.httpgateway.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netifi.proteus.httpgateway.invocation.ServiceInvocationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
- *
+ * Restful endpoint responsible for mapping HTTP requests to Proteus requests.
  */
 @RestController
 public class HttpGatewayController {
@@ -40,6 +39,15 @@ public class HttpGatewayController {
     @Autowired
     private ServiceInvocationFactory serviceInvocationFactory;
 
+    /**
+     * Handles mapping request/response interactions with a group from HTTP to Proteus.
+     *
+     * @param group proteus group name
+     * @param service proteus service name
+     * @param method proteus service method name
+     * @param body http request body
+     * @return http response
+     */
     @PostMapping(value = "/{group}/{service}/{method}",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
@@ -63,6 +71,16 @@ public class HttpGatewayController {
                 });
     }
 
+    /**
+     * Handles mapping request/response interactions with a specific destination from HTTP to Proteus.
+     *
+     * @param group proteus group name
+     * @param destination proteus destination name
+     * @param service proteus service name
+     * @param method proteus service method name
+     * @param body http request body
+     * @return http response
+     */
     @PostMapping(value = "/{group}/{destination}/{service}/{method}",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
