@@ -16,21 +16,18 @@
 package com.netifi.proteus.httpgateway.http;
 
 import com.netifi.proteus.httpgateway.invocation.ServiceInvocationFactory;
-import com.netifi.proteus.httpgateway.invocation.ServiceInvocationResult;
-import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoSink;
-
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  *
@@ -98,4 +95,9 @@ public class HttpGatewayHandler {
                     }
                 });
     }
+
+//    @ExceptionHandler(RuntimeException.class)
+//    public ResponseEntity handleExceptions(Throwable throwable) {
+//        return ResponseEntity.notFound().build();
+//    }
 }

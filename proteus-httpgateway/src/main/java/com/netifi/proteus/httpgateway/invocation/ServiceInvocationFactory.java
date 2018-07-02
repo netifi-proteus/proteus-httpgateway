@@ -21,10 +21,10 @@ public class ServiceInvocationFactory {
     }
 
     public ServiceInvocation create(String group, String service, String method) {
-        return null;
+        return new ServiceInvocation(null);
     }
 
     public ServiceInvocation create(String group, String destination, String service, String method) {
-        return null;
+        return new ServiceInvocation(null);
     }
 }
