@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netifi.proteus.httpgateway.handler;
+package com.netifi.proteus.httpgateway.http;
 
 import com.netifi.proteus.httpgateway.invocation.ServiceInvoker;
 import com.netifi.proteus.httpgateway.invocation.ServiceInvokerFactory;

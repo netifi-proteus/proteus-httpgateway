@@ -1,13 +1,11 @@
-package com.netifi.proteus.httpgateway.handler;
+package com.netifi.proteus.httpgateway.http;
 
 import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 
 public class HttpErrorResponse implements Serializable {
     private static final String TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss";

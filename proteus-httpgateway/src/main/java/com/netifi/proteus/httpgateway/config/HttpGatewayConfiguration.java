@@ -15,7 +15,7 @@
  */
 package com.netifi.proteus.httpgateway.config;
 
-import com.netifi.proteus.httpgateway.handler.HttpGatewayHandler;
+import com.netifi.proteus.httpgateway.http.HttpGatewayHandler;
 import com.netifi.proteus.httpgateway.registry.FileSystemServiceRegistry;
 import com.netifi.proteus.httpgateway.registry.ServiceRegistry;
 import io.netifi.proteus.Proteus;
