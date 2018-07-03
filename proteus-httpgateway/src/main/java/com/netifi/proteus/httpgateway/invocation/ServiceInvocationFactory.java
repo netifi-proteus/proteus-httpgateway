@@ -104,6 +104,15 @@ public class ServiceInvocationFactory {
         return doCreate(destinationSockets.get(key), service, method, body);
     }
 
+    /**
+     * Creates a {@link ServiceInvocation} to invoke a Proteus method.
+     *
+     * @param proteusSocket proteus socket that connects to the broker
+     * @param service proteus service name
+     * @param method proteus method name
+     * @param body http body to convert to protobuf and send to the Proteus service
+     * @return the {@link ServiceInvocation} to invoke
+     */
     private ServiceInvocation doCreate(ProteusSocket proteusSocket, String service, String method, String body) {
         ProteusRegistryEntry regEntry = proteusRegistry.get(service, method);
 
@@ -139,7 +148,7 @@ public class ServiceInvocationFactory {
                         parameters.add(createParameter(parameterTypes.get(i), bodyParts.get(i)));
                     }
 
-                    responseBuilder = createResponseBuilder(responseType);
+                    responseBuilder = createBuilder(responseType);
 
                     break;
                 }
@@ -151,6 +160,14 @@ public class ServiceInvocationFactory {
         }
     }
 
+    /**
+     * Maps the supplied raw string json into a protobuf parameter type.
+     *
+     * @param clazz parameter class
+     * @param rawValue raw string to convert to the parameter
+     * @return protobuf parameter type
+     * @throws Exception
+     */
     private Object createParameter(Class<?> clazz, String rawValue) throws Exception {
         Method method = clazz.getMethod("newBuilder");
         GeneratedMessageV3.Builder builder = (GeneratedMessageV3.Builder) method.invoke(null);
@@ -159,11 +176,25 @@ public class ServiceInvocationFactory {
         return builder.build();
     }
 
-    private Object createResponseBuilder(Class<?> clazz) throws Exception {
+    /**
+     * Creates a protobuf builder from the supplied Proteus class.
+     *
+     * @param clazz proteus class
+     * @return protobuf builder
+     * @throws Exception
+     */
+    private Object createBuilder(Class<?> clazz) throws Exception {
         Method method = clazz.getMethod("newBuilder");
         return method.invoke(null);
     }
 
+    /**
+     * Splits the incoming json into multiple parameters.
+     *
+     * @param body string body
+     * @return a list of strings that make up the parameters in the body.
+     * @throws Exception
+     */
     private List<String> splitBody(String body) throws Exception {
         List<String> parts = Lists.newArrayList();
 

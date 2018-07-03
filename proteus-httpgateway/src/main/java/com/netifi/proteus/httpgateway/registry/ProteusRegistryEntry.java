@@ -19,6 +19,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * An entry in {@link ProteusRegistry}.
+ */
 public class ProteusRegistryEntry {
     private final Class<?> clientClass;
     private final List<Method> clientMethods = new ArrayList<>();

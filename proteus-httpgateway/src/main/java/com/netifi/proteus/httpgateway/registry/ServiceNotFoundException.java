@@ -15,10 +15,19 @@
  */
 package com.netifi.proteus.httpgateway.registry;
 
+/**
+ * Exception thrown when a service is requested that does not have a mapping in the gateway.
+ */
 public class ServiceNotFoundException extends RuntimeException {
     private final String service;
     private final String method;
 
+    /**
+     * Create a new instance of {@link ServiceNotFoundException}.
+     *
+     * @param service proteus service name
+     * @param method proteus method name
+     */
     public ServiceNotFoundException(String service, String method) {
         super(String.format("The service/method is not registered. [service='%s', method='%s']", service, method));
 
@@ -26,10 +35,16 @@ public class ServiceNotFoundException extends RuntimeException {
         this.method = method;
     }
 
+    /**
+     * @return proteus service name
+     */
     public String getService() {
         return service;
     }
 
+    /**
+     * @return proteus method name
+     */
     public String getMethod() {
         return method;
     }

@@ -24,6 +24,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Error message returned to HTTP clients.
+ */
 @JsonPropertyOrder(value = {
         "httpStatus",
         "httpStatusMessage",
@@ -49,6 +52,13 @@ public class HttpErrorResponse implements Serializable {
 
     }
 
+    /**
+     * Creates an {@link HttpErrorResponse}.
+     *
+     * @param httpStatus http status
+     * @param message error message
+     * @return http error response
+     */
     public static HttpErrorResponse of(HttpStatus httpStatus, String message) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)
                 .withZone(ZoneId.systemDefault());
@@ -62,6 +72,13 @@ public class HttpErrorResponse implements Serializable {
         return response;
     }
 
+    /**
+     * Creates an {@link HttpErrorResponse}.
+     *
+     * @param httpStatus http status
+     * @param throwable exception
+     * @return http error response
+     */
     public static HttpErrorResponse of(HttpStatus httpStatus, Throwable throwable) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)
                 .withZone(ZoneId.systemDefault());
@@ -75,6 +92,12 @@ public class HttpErrorResponse implements Serializable {
         return response;
     }
 
+    /**
+     * Creates an {@link HttpErrorResponse}.
+     *
+     * @param throwable exception
+     * @return http error response
+     */
     public static HttpErrorResponse of(Throwable throwable) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)
                 .withZone(ZoneId.systemDefault());

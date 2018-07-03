@@ -23,6 +23,9 @@ import reactor.core.publisher.Mono;
 import java.lang.reflect.Method;
 import java.util.List;
 
+/**
+ * Wrapper around a Proteus service invocation.
+ */
 public class ServiceInvocation {
     private final Object client;
     private final Method methodToInvoke;
@@ -31,6 +34,16 @@ public class ServiceInvocation {
     private final Class<?> responseType;
     private final Object responseBuilder;
 
+    /**
+     * Creates a new instance of {@link ServiceInvocation}.
+     *
+     * @param client proteus client
+     * @param methodToInvoke method to invoke on client
+     * @param parameterTypes types of method parameters
+     * @param parameters method parameters objects
+     * @param responseType type of response object
+     * @param responseBuilder protobuf response builder
+     */
     public ServiceInvocation(Object client,
                              Method methodToInvoke,
                              List<Class<?>> parameterTypes,
@@ -45,6 +58,11 @@ public class ServiceInvocation {
         this.responseBuilder = responseBuilder;
     }
 
+    /**
+     * Invokes this {@link ServiceInvocation} and allows you to subscribe to result.
+     *
+     * @return a {@link Mono<ServiceInvocationResult>} with the result of the proteus service invocation
+     */
     public Mono<ServiceInvocationResult> invoke() {
         try {
             methodToInvoke.setAccessible(true);
