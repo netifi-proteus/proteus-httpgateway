@@ -147,7 +147,7 @@ public class ServiceInvocationFactory {
 
             return new ServiceInvocation(client, methodToInvoke, parameterTypes, parameters, responseType, responseBuilder);
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Error occured invoking Proteus service. [service='%s', method='%s'", service, method), e);
+            throw new RuntimeException(String.format("Error occurred invoking Proteus service. [service='%s', method='%s'", service, method), e);
         }
     }
 
