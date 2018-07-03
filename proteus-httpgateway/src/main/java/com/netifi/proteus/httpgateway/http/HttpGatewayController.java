@@ -57,8 +57,8 @@ public class HttpGatewayController {
                                                   @RequestBody String body) {
         LOGGER.debug("Received Group Request [group='{}', service='{}', method='{}']", group, service, method);
 
-        return serviceInvocationFactory.create(group, service, method)
-                .invoke(body)
+        return serviceInvocationFactory.create(group, service, method, body)
+                .invoke()
                 .flatMap(result -> {
                     if (result.isSuccess()) {
                         return Mono.just(ResponseEntity.ok().build());
@@ -91,8 +91,8 @@ public class HttpGatewayController {
                                                         @RequestBody String body) {
         LOGGER.debug("Received Destination Request [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
 
-        return serviceInvocationFactory.create(group,destination, service, method)
-                .invoke(body)
+        return serviceInvocationFactory.create(group, destination, service, method, body)
+                .invoke()
                 .flatMap(result -> {
                     if (result.isSuccess()) {
                         return Mono.just(ResponseEntity.ok().build());

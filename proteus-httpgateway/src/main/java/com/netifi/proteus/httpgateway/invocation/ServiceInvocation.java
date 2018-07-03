@@ -24,7 +24,7 @@ public class ServiceInvocation {
 
     }
 
-    public Mono<ServiceInvocationResult> invoke(String body) {
+    public Mono<ServiceInvocationResult> invoke() {
         throw new RuntimeException("This is a test");
     }
 }

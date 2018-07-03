@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ProteusRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProteusRegistry.class);
-    private static final Map<Key, List<Method>> MAPPINGS = new ConcurrentHashMap<>();
+    private static final Map<Key, ProteusRegistryEntry> MAPPINGS = new ConcurrentHashMap<>();
 
     private final Path registryDir;
 
@@ -68,7 +68,7 @@ public class ProteusRegistry {
      * @param method
      * @return
      */
-    public List<Method> get(String service, String method) {
+    public ProteusRegistryEntry get(String service, String method) {
         Key mappingKey = Key.from(service, method);
         if (MAPPINGS.containsKey(mappingKey)) {
             return MAPPINGS.get(mappingKey);
@@ -108,15 +108,17 @@ public class ProteusRegistry {
                 Class<?> clazz = classLoader.loadClass(className);
 
                 if (isProteusClient(clazz)) {
+                    Class<?> serviceClazz = clazz.getAnnotation(ProteusGenerated.class).idlClass();
+
+                    ProteusRegistryEntry regEntry = new ProteusRegistryEntry(clazz);
+
                     for (Method method : clazz.getDeclaredMethods()) {
                         if (isProteusMethod(method)) {
-                            if (MAPPINGS.containsKey(Key.from(className, method.getName()))) {
-                                MAPPINGS.get(Key.from(className, method.getName())).add(method);
+                            if (MAPPINGS.containsKey(Key.from(serviceClazz.getCanonicalName(), method.getName()))) {
+                                MAPPINGS.get(Key.from(serviceClazz.getCanonicalName(), method.getName())).addMethod(method);
                             } else {
-                                List<Method> methods = new ArrayList<>();
-                                methods.add(method);
-
-                                MAPPINGS.put(Key.from(className, method.getName()), methods);
+                                regEntry.addMethod(method);
+                                MAPPINGS.put(Key.from(serviceClazz.getCanonicalName(), method.getName()), regEntry);
                             }
                         }
                     }

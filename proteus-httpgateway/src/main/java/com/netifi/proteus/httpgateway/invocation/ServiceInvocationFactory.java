@@ -16,6 +16,7 @@
 package com.netifi.proteus.httpgateway.invocation;
 
 import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
+import com.netifi.proteus.httpgateway.registry.ProteusRegistryEntry;
 import io.netifi.proteus.Proteus;
 import io.netifi.proteus.rsocket.ProteusSocket;
 import org.slf4j.Logger;
@@ -23,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,22 +44,28 @@ public class ServiceInvocationFactory {
         this.proteus = proteus;
     }
 
-    public ServiceInvocation create(String group, String service, String method) {
+    public ServiceInvocation create(String group, String service, String method, String body) {
         if (!groupSockets.containsKey(group)) {
             LOGGER.debug("Creating new proteus socket for group. [group='{}']", group);
             groupSockets.put(group, proteus.group(group));
         }
 
-        return new ServiceInvocation(null);
+        return doCreate(groupSockets.get(group), service, method, body);
     }
 
-    public ServiceInvocation create(String group, String destination, String service, String method) {
+    public ServiceInvocation create(String group, String destination, String service, String method, String body) {
         String key = group + destination;
         if (!destinationSockets.containsKey(key)) {
             LOGGER.debug("Creating new proteus socket for destination. [group='{}', destination='{}']", group, destination);
             destinationSockets.put(key, proteus.destination(destination, group));
         }
 
-        return new ServiceInvocation(null);
+        return doCreate(destinationSockets.get(key), service, method, body);
+    }
+
+    private ServiceInvocation doCreate(ProteusSocket proteusSocket, String service, String method, String body) {
+        ProteusRegistryEntry regEntry = proteusRegistry.get(service, method);
+
+        return new ServiceInvocation(proteusSocket);
     }
 }
