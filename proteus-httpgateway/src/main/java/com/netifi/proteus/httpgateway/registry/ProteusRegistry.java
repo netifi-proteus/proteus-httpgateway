@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ProteusRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProteusRegistry.class);
-    private static final Map<Key, ProteusRegistryEntry> MAPPINGS = new ConcurrentHashMap<>();
+    private static final Map<String, ProteusRegistryEntry> MAPPINGS = new ConcurrentHashMap<>();
 
     private final Path registryDir;
 
@@ -59,7 +59,7 @@ public class ProteusRegistry {
      * @return
      */
     public boolean contains(String service, String method) {
-        return MAPPINGS.containsKey(Key.from(service, method));
+        return MAPPINGS.containsKey(createKey(service, method));
     }
 
     /**
@@ -69,11 +69,11 @@ public class ProteusRegistry {
      * @return
      */
     public ProteusRegistryEntry get(String service, String method) {
-        Key mappingKey = Key.from(service, method);
+        String mappingKey = createKey(service, method);
         if (MAPPINGS.containsKey(mappingKey)) {
             return MAPPINGS.get(mappingKey);
         } else {
-            throw new ServiceNotFoundException(mappingKey.service, mappingKey.method);
+            throw new ServiceNotFoundException(service, method);
         }
     }
 
@@ -114,11 +114,11 @@ public class ProteusRegistry {
 
                     for (Method method : clazz.getDeclaredMethods()) {
                         if (isProteusMethod(method)) {
-                            if (MAPPINGS.containsKey(Key.from(serviceClazz.getCanonicalName(), method.getName()))) {
-                                MAPPINGS.get(Key.from(serviceClazz.getCanonicalName(), method.getName())).addMethod(method);
+                            if (MAPPINGS.containsKey(createKey(serviceClazz.getCanonicalName(), method.getName()))) {
+                                MAPPINGS.get(createKey(serviceClazz.getCanonicalName(), method.getName())).addMethod(method);
                             } else {
                                 regEntry.addMethod(method);
-                                MAPPINGS.put(Key.from(serviceClazz.getCanonicalName(), method.getName()), regEntry);
+                                MAPPINGS.put(createKey(serviceClazz.getCanonicalName(), method.getName()), regEntry);
                             }
                         }
                     }
@@ -167,34 +167,7 @@ public class ProteusRegistry {
         return false;
     }
 
-    /**
-     * Registry key used to lookup Proteus method implementations.
-     */
-    private static class Key {
-        private final String service;
-        private final String method;
-
-        static Key from(final String service, final String method) {
-            return new Key(service, method);
-        }
-
-        private Key(final String service, final String method) {
-            this.service = service;
-            this.method = method;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Key key = (Key) o;
-            return Objects.equals(service, key.service) &&
-                    Objects.equals(method, key.method);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(service, method);
-        }
+    private String createKey(String service, String method) {
+        return service + "." + method;
     }
 }
