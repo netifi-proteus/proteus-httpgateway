@@ -86,6 +86,8 @@ public class ProteusRegistry {
         // Find all jars in the registry directory
         List<URL> foundJars = JarUtil.findJars(registryDir);
 
+        LOGGER.debug("Found '{}' jars in registry directory. [directory='{}']", foundJars.size(), registryDir);
+
         // Find all classes in the jars
         Set<String> foundClasses = new HashSet<>();
         foundJars.forEach(url -> {
