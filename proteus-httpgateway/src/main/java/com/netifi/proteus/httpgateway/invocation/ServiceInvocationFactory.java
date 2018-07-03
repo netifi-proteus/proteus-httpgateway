@@ -18,6 +18,8 @@ package com.netifi.proteus.httpgateway.invocation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistryEntry;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -33,9 +35,8 @@ import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -109,7 +110,8 @@ public class ServiceInvocationFactory {
         try {
             Object client;
             Method methodToInvoke = null;
-            List<Class<?>> parameterTypes = null;
+            List<Class<?>> parameterTypes = new ArrayList<>();
+            List<Object> parameters = new ArrayList<>();
             Class<?> responseType = null;
 
             // Instantiate client
@@ -121,42 +123,54 @@ public class ServiceInvocationFactory {
                 client = ctor.newInstance(proteusSocket);
             }
 
-            // Get number of request parameters to expect based on incoming body
-            int parameterCount = requestParameterCount(body);
+            // Split the body into multiple parameters if it is an array
+            List<String> bodyParts = splitBody(body);
 
-            // Find client method to invoke
             for(Method clientMethod: regEntry.getClientMethods()) {
-                if (clientMethod.getParameterCount() == parameterCount) {
-                    methodToInvoke = clientMethod;
-                    parameterTypes = Lists.newArrayList(clientMethod.getParameterTypes());
-
+                // Find client method to invoke
+                if (clientMethod.getParameterCount() == bodyParts.size()) {
                     ProteusGeneratedMethod annotation = clientMethod.getAnnotation(ProteusGeneratedMethod.class);
+                    methodToInvoke = clientMethod;
+                    parameterTypes = new ArrayList<>(Arrays.asList(clientMethod.getParameterTypes()));
                     responseType = annotation.returnTypeClass();
+
+                    for (int i = 0; i < parameterTypes.size(); i++) {
+                        parameters.add(createParameter(parameterTypes.get(i), bodyParts.get(i)));
+                    }
+
+                    break;
                 }
             }
 
-            return new ServiceInvocation(proteusSocket, client, methodToInvoke, parameterTypes, body, responseType, mapper);
+            return new ServiceInvocation(proteusSocket, client, methodToInvoke, parameterTypes, parameters, responseType);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error occured invoking Proteus service. [service='%s', method='%s'", service, method), e);
         }
     }
 
-    private int requestParameterCount(String body) throws Exception {
+    private Object createParameter(Class<?> clazz, String rawValue) throws Exception {
+        Method method = clazz.getMethod("newBuilder");
+        GeneratedMessageV3.Builder builder = (GeneratedMessageV3.Builder) method.invoke(null);
+
+        JsonFormat.parser().merge(rawValue, builder);
+        return builder.build();
+    }
+
+    private List<String> splitBody(String body) throws Exception {
+        List<String> parts = Lists.newArrayList();
+
         if (!StringUtils.isEmpty(body)) {
             JsonNode rootNode = mapper.readTree(body);
 
-            int nodeCnt = 0;
             if (rootNode.isArray()) {
                 for (JsonNode node : rootNode) {
-                    nodeCnt++;
+                    parts.add(node.toString());
                 }
             } else {
-                nodeCnt++;
+                parts.add(body);
             }
-
-            return nodeCnt;
         }
 
-        return 0;
+        return parts;
     }
 }

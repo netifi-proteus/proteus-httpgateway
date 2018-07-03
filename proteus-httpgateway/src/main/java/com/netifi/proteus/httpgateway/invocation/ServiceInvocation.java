@@ -16,6 +16,7 @@
 package com.netifi.proteus.httpgateway.invocation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.util.JsonFormat;
 import io.netifi.proteus.rsocket.ProteusSocket;
 import reactor.core.publisher.Mono;
 
@@ -27,27 +28,28 @@ public class ServiceInvocation {
     private final Object client;
     private final Method methodToInvoke;
     private final List<Class<?>> parameterTypes;
-    private final String body;
+    private final List<Object> parameters;
     private final Class<?> responseType;
-    private final ObjectMapper mapper;
 
     public ServiceInvocation(ProteusSocket proteusSocket,
                              Object client,
                              Method methodToInvoke,
                              List<Class<?>> parameterTypes,
-                             String body,
-                             Class<?> responseType,
-                             ObjectMapper mapper) {
+                             List<Object> parameters,
+                             Class<?> responseType) {
         this.proteusSocket = proteusSocket;
         this.client = client;
         this.methodToInvoke = methodToInvoke;
         this.parameterTypes = parameterTypes;
-        this.body = body;
+        this.parameters = parameters;
         this.responseType = responseType;
-        this.mapper = mapper;
     }
 
     public Mono<ServiceInvocationResult> invoke() {
-        throw new RuntimeException("This is a test");
+        return Mono.fromSupplier(() -> {
+            System.out.println(client);
+            System.out.println(responseType);
+            return new ServiceInvocationResult();
+        });
     }
 }
