@@ -61,7 +61,7 @@ public class HttpGatewayController {
                 .invoke()
                 .flatMap(result -> {
                     if (result.isSuccess()) {
-                        return Mono.just(ResponseEntity.ok().build());
+                        return Mono.just(ResponseEntity.ok(result.getResponse()));
                     } else {
                         HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
 

@@ -113,6 +113,7 @@ public class ServiceInvocationFactory {
             List<Class<?>> parameterTypes = new ArrayList<>();
             List<Object> parameters = new ArrayList<>();
             Class<?> responseType = null;
+            Object responseBuilder = null;
 
             // Instantiate client
             if (meterRegistry.isPresent()) {
@@ -138,11 +139,13 @@ public class ServiceInvocationFactory {
                         parameters.add(createParameter(parameterTypes.get(i), bodyParts.get(i)));
                     }
 
+                    responseBuilder = createResponseBuilder(responseType);
+
                     break;
                 }
             }
 
-            return new ServiceInvocation(proteusSocket, client, methodToInvoke, parameterTypes, parameters, responseType);
+            return new ServiceInvocation(client, methodToInvoke, parameterTypes, parameters, responseType, responseBuilder);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error occured invoking Proteus service. [service='%s', method='%s'", service, method), e);
         }
@@ -154,6 +157,11 @@ public class ServiceInvocationFactory {
 
         JsonFormat.parser().merge(rawValue, builder);
         return builder.build();
+    }
+
+    private Object createResponseBuilder(Class<?> clazz) throws Exception {
+        Method method = clazz.getMethod("newBuilder");
+        return method.invoke(null);
     }
 
     private List<String> splitBody(String body) throws Exception {

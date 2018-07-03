@@ -16,40 +16,63 @@
 package com.netifi.proteus.httpgateway.invocation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import io.netifi.proteus.rsocket.ProteusSocket;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ServiceInvocation {
-    private final ProteusSocket proteusSocket;
     private final Object client;
     private final Method methodToInvoke;
     private final List<Class<?>> parameterTypes;
-    private final List<Object> parameters;
+    private final Object[] parameters;
     private final Class<?> responseType;
+    private final Object responseBuilder;
 
-    public ServiceInvocation(ProteusSocket proteusSocket,
-                             Object client,
+    public ServiceInvocation(Object client,
                              Method methodToInvoke,
                              List<Class<?>> parameterTypes,
                              List<Object> parameters,
-                             Class<?> responseType) {
-        this.proteusSocket = proteusSocket;
+                             Class<?> responseType,
+                             Object responseBuilder) {
         this.client = client;
         this.methodToInvoke = methodToInvoke;
         this.parameterTypes = parameterTypes;
-        this.parameters = parameters;
+        this.parameters = parameters.toArray();
         this.responseType = responseType;
+        this.responseBuilder = responseBuilder;
     }
 
     public Mono<ServiceInvocationResult> invoke() {
-        return Mono.fromSupplier(() -> {
-            System.out.println(client);
-            System.out.println(responseType);
-            return new ServiceInvocationResult();
-        });
+        try {
+            methodToInvoke.setAccessible(true);
+            Mono<?> responseMono = (Mono<?>) methodToInvoke.invoke(client, parameters);
+            return responseMono.flatMap(o -> {
+                try {
+                    String response = JsonFormat.printer().includingDefaultValueFields().print((Message) o);
+                    return Mono.just(ServiceInvocationResult.success(response));
+                } catch (InvalidProtocolBufferException e) {
+                    throw new RuntimeException(e);
+                }
+            }).onErrorResume(new Function<Throwable, Mono<? extends ServiceInvocationResult>>() {
+                @Override
+                public Mono<? extends ServiceInvocationResult> apply(Throwable throwable) {
+                    return null;
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

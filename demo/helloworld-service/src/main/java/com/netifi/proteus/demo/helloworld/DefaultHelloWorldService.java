@@ -24,8 +24,10 @@ public class DefaultHelloWorldService implements HelloWorldService {
 
     @Override
     public Mono<HelloResponse> sayHello(HelloRequest message, ByteBuf metadata) {
-        return Mono.fromSupplier(() -> HelloResponse.newBuilder()
-                .setMessage("Hello, " + message.getName() + "!")
-                .build());
+        return Mono.fromSupplier(() -> {
+            return HelloResponse.newBuilder()
+                    .setMessage("Hello, " + message.getName() + "!")
+                    .build();
+        });
     }
 }

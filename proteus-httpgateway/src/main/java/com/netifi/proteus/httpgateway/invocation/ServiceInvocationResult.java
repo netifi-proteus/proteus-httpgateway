@@ -16,10 +16,27 @@
 package com.netifi.proteus.httpgateway.invocation;
 
 public class ServiceInvocationResult {
-
     private boolean success = false;
+    private String response;
+
+    public static ServiceInvocationResult success(String response) {
+        return new ServiceInvocationResult(true, response);
+    }
+
+    public static ServiceInvocationResult fail() {
+        return new ServiceInvocationResult(false, null);
+    }
+
+    private ServiceInvocationResult(boolean success, String response) {
+        this.success = success;
+        this.response = response;
+    }
 
     public boolean isSuccess() {
         return success;
+    }
+
+    public String getResponse() {
+        return response;
     }
 }
