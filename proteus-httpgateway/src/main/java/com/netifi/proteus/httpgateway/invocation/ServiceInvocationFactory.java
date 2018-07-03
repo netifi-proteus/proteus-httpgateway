@@ -15,31 +15,48 @@
  */
 package com.netifi.proteus.httpgateway.invocation;
 
-import com.netifi.proteus.httpgateway.config.ProteusSettings;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
+import io.netifi.proteus.Proteus;
+import io.netifi.proteus.rsocket.ProteusSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class ServiceInvocationFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceInvocationFactory.class);
 
     private final ProteusRegistry proteusRegistry;
-    private final ProteusSettings proteusSettings;
+    private final Proteus proteus;
+    private final Map<String, ProteusSocket> groupSockets = new ConcurrentHashMap<>();
+    private final Map<String, ProteusSocket> destinationSockets = new ConcurrentHashMap<>();
 
     @Autowired
-    public ServiceInvocationFactory(ProteusRegistry proteusRegistry, ProteusSettings proteusSettings) {
+    public ServiceInvocationFactory(ProteusRegistry proteusRegistry, Proteus proteus) {
         this.proteusRegistry = proteusRegistry;
-        this.proteusSettings = proteusSettings;
+        this.proteus = proteus;
     }
 
     public ServiceInvocation create(String group, String service, String method) {
+        if (!groupSockets.containsKey(group)) {
+            LOGGER.debug("Creating new proteus socket for group. [group='{}']", group);
+            groupSockets.put(group, proteus.group(group));
+        }
+
         return new ServiceInvocation(null);
     }
 
     public ServiceInvocation create(String group, String destination, String service, String method) {
+        String key = group + destination;
+        if (!destinationSockets.containsKey(key)) {
+            LOGGER.debug("Creating new proteus socket for destination. [group='{}', destination='{}']", group, destination);
+            destinationSockets.put(key, proteus.destination(destination, group));
+        }
+
         return new ServiceInvocation(null);
     }
 }
