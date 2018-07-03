@@ -1,5 +1,7 @@
 # proteus-httpgateway
 
+An API Gateway that allows bridging HTTP into Proteus.
+
 ## License
 Copyright 2018 [Netifi Inc.](https://www.netifi.com)
 
