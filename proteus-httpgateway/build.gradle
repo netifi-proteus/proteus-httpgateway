@@ -18,6 +18,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-webflux'
     compile "io.netifi.proteus:client:${proteusVersion}"
     compile "com.google.protobuf:protobuf-java:${protobufVersion}"
+    compile 'com.hubspot.jackson:jackson-datatype-protobuf:0.9.9-jackson2.9-proto3'
 }
 
 // TODO: Remove this once we shade Guava inside Proteus

@@ -15,6 +15,8 @@
  */
 package com.netifi.proteus.httpgateway.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netifi.proteus.httpgateway.invocation.ServiceInvocationFactory;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
 import io.netifi.proteus.Proteus;
 import org.springframework.context.annotation.Bean;
@@ -37,5 +39,10 @@ public class HttpGatewayConfiguration {
                 .accessKey(proteusSettings.getAccessKey())
                 .accessToken(proteusSettings.getAccessToken())
                 .build();
+    }
+
+    @Bean
+    public ObjectMapper mapper() {
+        return new ObjectMapper();
     }
 }
