@@ -51,20 +51,22 @@ public class ProteusRegistry {
     }
 
     /**
+     * Checks to see whether or not the registry contains an entry for the specified Proteus service and method.
      *
-     * @param service
-     * @param method
-     * @return
+     * @param service service name
+     * @param method method name
+     * @return <code>true</code> if the registry contains an entry for the specified service; otherwise <code>false</code>
      */
     public boolean contains(String service, String method) {
         return MAPPINGS.containsKey(createKey(service, method));
     }
 
     /**
+     * Gets information from the registry for the specified Proteus service and method.
      *
-     * @param service
-     * @param method
-     * @return
+     * @param service service name
+     * @param method method name
+     * @return proteus service information
      */
     public ProteusRegistryEntry get(String service, String method) {
         String mappingKey = createKey(service, method);
