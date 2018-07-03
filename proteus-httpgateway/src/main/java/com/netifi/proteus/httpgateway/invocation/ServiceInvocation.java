@@ -15,22 +15,13 @@
  */
 package com.netifi.proteus.httpgateway.invocation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
-import io.netifi.proteus.rsocket.ProteusSocket;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class ServiceInvocation {
     private final Object client;
@@ -65,11 +56,8 @@ public class ServiceInvocation {
                 } catch (InvalidProtocolBufferException e) {
                     throw new RuntimeException(e);
                 }
-            }).onErrorResume(new Function<Throwable, Mono<? extends ServiceInvocationResult>>() {
-                @Override
-                public Mono<? extends ServiceInvocationResult> apply(Throwable throwable) {
-                    return null;
-                }
+            }).onErrorResume(throwable -> {
+                return Mono.just(ServiceInvocationResult.fail());
             });
         } catch (Exception e) {
             throw new RuntimeException(e);
