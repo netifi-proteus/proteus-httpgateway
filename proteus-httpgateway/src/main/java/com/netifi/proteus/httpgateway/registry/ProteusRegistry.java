@@ -165,6 +165,13 @@ public class ProteusRegistry {
         return false;
     }
 
+    /**
+     * Creates a registry key.
+     *
+     * @param service service name
+     * @param method method name
+     * @return registry key
+     */
     private String createKey(String service, String method) {
         return service + "." + method;
     }
