@@ -37,6 +37,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Registry that holds Proteus method implementations that have been discovered in the
+ * registry directory.
+ */
 public class ProteusRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProteusRegistry.class);
     private static final Map<Key, List<Method>> MAPPINGS = new ConcurrentHashMap<>();
@@ -73,6 +77,11 @@ public class ProteusRegistry {
         }
     }
 
+    /**
+     * Initializes the registry.
+     *
+     * @throws Exception
+     */
     private void init() throws Exception {
         // Find all jars in the registry directory
         List<URL> foundJars = JarUtil.findJars(registryDir);
@@ -116,6 +125,12 @@ public class ProteusRegistry {
         });
     }
 
+    /**
+     * Checks whether or not the supplied class is a Proteus client implementation.
+     *
+     * @param clazz class to check
+     * @return <code>true</code> if the class is a Proteus client implementation; otherwise <code>false</code>
+     */
     private boolean isProteusClient(Class<?> clazz) {
         if (clazz != null) {
             if (clazz.isAnnotationPresent(ProteusGenerated.class)) {
@@ -132,6 +147,12 @@ public class ProteusRegistry {
         return false;
     }
 
+    /**
+     * Checks whether or not the supplied method is a Proteus method implementation.
+     *
+     * @param method method to check
+     * @return <code>true</code> if the method is a Proteus method implementation; otherwise <code>false</code>
+     */
     private boolean isProteusMethod(Method method) {
         if (method != null) {
             if (Mono.class.isAssignableFrom(method.getReturnType()) || Flux.class.isAssignableFrom(method.getReturnType())) {
@@ -142,6 +163,9 @@ public class ProteusRegistry {
         return false;
     }
 
+    /**
+     * Registry key used to lookup Proteus method implementations.
+     */
     private static class Key {
         private final String service;
         private final String method;
