@@ -76,8 +76,8 @@ hs_err_pid*
 # temporary files which can be created if a process still has a handle open of a deleted file
 .fuse_hidden*
 
-# KDE directory preferences
-.directory
+# KDE registryDir preferences
+.registryDir
 
 # Linux trash folder which might appear on any partition or disk
 .Trash-*

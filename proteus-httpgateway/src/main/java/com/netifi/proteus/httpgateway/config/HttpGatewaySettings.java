@@ -32,7 +32,7 @@ public class HttpGatewaySettings {
     public static final String DEFAULT_GROUP = "proteus.httpgateway";
 
     private String group;
-    private String directory;
+    private String registryDir;
 
     @PostConstruct
     public void init() {
@@ -40,12 +40,16 @@ public class HttpGatewaySettings {
             group = DEFAULT_GROUP;
         }
 
-        if (StringUtils.isEmpty(directory)) {
+        if (StringUtils.isEmpty(registryDir)) {
             ApplicationHome home = new ApplicationHome(Main.class);
-            directory = home.getDir().getAbsolutePath();
+            registryDir = home.getDir().getAbsolutePath() + "/registry";
+
+            if (!Files.isDirectory(Paths.get(registryDir))) {
+                Paths.get(registryDir).toFile().mkdirs();
+            }
         } else {
-            if (!Files.isDirectory(Paths.get(directory))) {
-                new RuntimeException(String.format("The 'netifi.httpgateway.directory' property is not a valid directory! [value='%s']", directory), new FileNotFoundException());
+            if (!Files.isDirectory(Paths.get(registryDir))) {
+                new RuntimeException(String.format("The 'netifi.httpgateway.registryDir' property is not a valid registryDir! [value='%s']", registryDir), new FileNotFoundException());
             }
         }
     }
@@ -58,11 +62,11 @@ public class HttpGatewaySettings {
         this.group = group;
     }
 
-    public String getDirectory() {
-        return directory;
+    public String getRegistryDir() {
+        return registryDir;
     }
 
-    public void setDirectory(String directory) {
-        this.directory = directory;
+    public void setRegistryDir(String registryDir) {
+        this.registryDir = registryDir;
     }
 }

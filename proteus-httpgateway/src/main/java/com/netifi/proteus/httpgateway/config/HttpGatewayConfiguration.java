@@ -15,7 +15,6 @@
  */
 package com.netifi.proteus.httpgateway.config;
 
-import com.netifi.proteus.httpgateway.registry.FileSystemProteusRegistry;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
 import io.netifi.proteus.Proteus;
 import org.springframework.context.annotation.Bean;
@@ -25,8 +24,8 @@ import org.springframework.context.annotation.Configuration;
 public class HttpGatewayConfiguration {
 
     @Bean
-    public ProteusRegistry serviceRegistry(HttpGatewaySettings settings) {
-        return new FileSystemProteusRegistry(settings);
+    public ProteusRegistry proteusRegistry(HttpGatewaySettings settings) throws Exception {
+        return new ProteusRegistry(settings);
     }
 
     @Bean

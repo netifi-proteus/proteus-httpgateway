@@ -26,12 +26,12 @@ import org.springframework.stereotype.Component;
 public class ServiceInvocationFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceInvocationFactory.class);
 
-    private final ProteusRegistry serviceRegistry;
+    private final ProteusRegistry proteusRegistry;
     private final ProteusSettings proteusSettings;
 
     @Autowired
-    public ServiceInvocationFactory(ProteusRegistry serviceRegistry, ProteusSettings proteusSettings) {
-        this.serviceRegistry = serviceRegistry;
+    public ServiceInvocationFactory(ProteusRegistry proteusRegistry, ProteusSettings proteusSettings) {
+        this.proteusRegistry = proteusRegistry;
         this.proteusSettings = proteusSettings;
     }
 
