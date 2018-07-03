@@ -26,11 +26,12 @@ allprojects {
 
     ext {
         protobufVersion = '3.6.0'
-        proteusVersion = '0.7.15'
+        proteusVersion = '0.7.16-SNAPSHOT'
         springbomVersion = 'Cairo-SR1'
     }
 
     repositories {
+        mavenLocal()
         jcenter()
         mavenCentral()
     }

@@ -22,6 +22,7 @@ import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistryEntry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.netifi.proteus.Proteus;
+import io.netifi.proteus.annotations.internal.ProteusGeneratedMethod;
 import io.netifi.proteus.rsocket.ProteusSocket;
 import io.rsocket.RSocket;
 import org.slf4j.Logger;
@@ -129,12 +130,12 @@ public class ServiceInvocationFactory {
                     methodToInvoke = clientMethod;
                     parameterTypes = Lists.newArrayList(clientMethod.getParameterTypes());
 
-                    Type actualTypeArgument = ((ParameterizedType) clientMethod.getReturnType().getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-                    responseType = clientMethod.getReturnType();
+                    ProteusGeneratedMethod annotation = clientMethod.getAnnotation(ProteusGeneratedMethod.class);
+                    responseType = annotation.returnTypeClass();
                 }
             }
 
-            return new ServiceInvocation(proteusSocket, client, methodToInvoke, parameterTypes, body, responseType);
+            return new ServiceInvocation(proteusSocket, client, methodToInvoke, parameterTypes, body, responseType, mapper);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error occured invoking Proteus service. [service='%s', method='%s'", service, method), e);
         }

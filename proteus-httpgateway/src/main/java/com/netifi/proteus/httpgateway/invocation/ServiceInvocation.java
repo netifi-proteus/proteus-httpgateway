@@ -15,6 +15,7 @@
  */
 package com.netifi.proteus.httpgateway.invocation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netifi.proteus.rsocket.ProteusSocket;
 import reactor.core.publisher.Mono;
 
@@ -28,19 +29,22 @@ public class ServiceInvocation {
     private final List<Class<?>> parameterTypes;
     private final String body;
     private final Class<?> responseType;
+    private final ObjectMapper mapper;
 
     public ServiceInvocation(ProteusSocket proteusSocket,
                              Object client,
                              Method methodToInvoke,
                              List<Class<?>> parameterTypes,
                              String body,
-                             Class<?> responseType) {
+                             Class<?> responseType,
+                             ObjectMapper mapper) {
         this.proteusSocket = proteusSocket;
         this.client = client;
         this.methodToInvoke = methodToInvoke;
         this.parameterTypes = parameterTypes;
         this.body = body;
         this.responseType = responseType;
+        this.mapper = mapper;
     }
 
     public Mono<ServiceInvocationResult> invoke() {
