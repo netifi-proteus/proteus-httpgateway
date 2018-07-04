@@ -6,6 +6,8 @@ An API Gateway that allows bridging HTTP with [Netifi Proteus](https://www.netif
 ## What is Proteus?
 
 ## How does the Proteus HTTP Gateway work?
+The diagram below shows the high-level architecture of how messages are received and routed by the Proteus HTTP Gateway.
+ 
 ![diagram](diagram.png)
 
 ## Bugs and Feedback
