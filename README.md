@@ -11,7 +11,6 @@ The diagram below shows the high-level architecture of how messages are received
 ![diagram](diagram.png)
 
 #### 1. Send HTTP Request
-
 Client makes an HTTP POST request to a URL in one of the following format:
 
 If automatic load-balancing across a group of services is desired:
@@ -25,6 +24,8 @@ If a specific service instance is desired:
 The request body must be in JSON format and the field names much match those of the service IDL.
 
 #### 2. Convert HTTP Request to Proteus
+The incoming HTTP request is mapped to a Proteus Service IDL based on the URL and request body. If no matching IDL can be 
+found an error is returned.
 
 #### 3. Send Request via Proteus Channel
 
