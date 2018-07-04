@@ -47,6 +47,9 @@ complete the interaction.
 You can build Proteus HTTP Gateway as an executable jar using the following command:
 
     $ ./gradlew clean build
+    
+## Examples
+Please see the included [demo project](demo) for an example on how to configure and use Proteus HTTP Gateway.
 
 ## Bugs and Feedback
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/netifi-proteus/proteus-httpgateway/issues).
