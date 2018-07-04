@@ -32,6 +32,9 @@ If no matching IDL can be found an error is returned.
 #### 3. Send Request via Proteus Channel
 The request is then sent to the Proteus Broker cluster which transparently handles service discovery and load balancing to the backend services.
 
+If a destination was specified in the URL then the request will be sent to that specific instance. If only a group was specified, Proteus will
+load balance the request to the healthiest, most performant instance, in the group using our Predictive Load Balancing algorithm.
+
 #### 4. Invoke Service Method
 The request arrives and invokes the Proteus service method.
 
