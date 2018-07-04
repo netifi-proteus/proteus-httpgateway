@@ -1,6 +1,11 @@
 # proteus-httpgateway
 
-An API Gateway that allows bridging HTTP into Proteus.
+An API Gateway that allows bridging HTTP with Proteus.
+
+## What is Proteus?
+
+## Bugs and Feedback
+For bugs, questions, and discussions please use the [Github Issues](https://github.com/netifi-proteus/proteus-httpgateway/issues).
 
 ## License
 Copyright 2018 [Netifi Inc.](https://www.netifi.com)
