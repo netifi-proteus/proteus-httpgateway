@@ -1,6 +1,6 @@
 # proteus-httpgateway
 
-An API Gateway that allows bridging HTTP with Proteus.
+An API Gateway that allows bridging HTTP with [Netifi Proteus](https://www.netifi.com).
 
 ## What is Proteus?
 
