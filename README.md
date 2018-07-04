@@ -24,16 +24,23 @@ If a specific service instance is desired:
 The request body must be in JSON format and the field names much match those of the service IDL.
 
 #### 2. Convert HTTP Request to Proteus
-The incoming HTTP request is mapped to a Proteus Service IDL based on the URL and request body. If no matching IDL can be 
-found an error is returned.
+The incoming HTTP request is mapped to a Proteus Service IDL based on the URL and request body. The JSON request body fields
+must match the fields on the IDL exactly. 
+
+If no matching IDL can be found an error is returned.
 
 #### 3. Send Request via Proteus Channel
+The request is then sent to the Proteus Broker cluster which transparently handles service discovery and load balancing to the backend services.
 
 #### 4. Invoke Service Method
+The request arrives and invokes the Proteus service method.
 
 #### 5. Send Response via Proteus Proteus Channel
+The Proteus service response is sent to the Proteus Broker cluster via the same bidirectional channel used by the request.
 
 #### 6. Send HTTP Response
+The Proteus service response is converted into an HTTP response with a JSON message body and sent back to the requesting client to
+complete the interaction.
 
 ## Bugs and Feedback
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/netifi-proteus/proteus-httpgateway/issues).
