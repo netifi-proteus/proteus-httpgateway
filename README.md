@@ -10,7 +10,9 @@ The diagram below shows the high-level architecture of how messages are received
  
 ![diagram](diagram.png)
 
-1. Client makes an HTTP POST request to a URL in one of the following format:
+1. Send HTTP Request
+
+    Client makes an HTTP POST request to a URL in one of the following format:
 
     If automatic load-balancing across a group of services is desired:
     
