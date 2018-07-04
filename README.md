@@ -1,7 +1,7 @@
 # Netifi Proteus HTTP Gateway
 [![Build Status](https://travis-ci.org/netifi-proteus/proteus-httpgateway.svg?branch=master)](https://travis-ci.org/netifi-proteus/proteus-httpgateway)
 
-An API Gateway that allows bridging HTTP with [Netifi Proteus](https://www.netifi.com).
+An API Gateway that allows bridging HTTP with [Netifi Proteus](https://www.netifi.com/proteus.html).
 
 ## How does the Proteus HTTP Gateway work?
 The diagram below shows the high-level architecture of how messages are received and routed by the Proteus HTTP Gateway.
