@@ -3,6 +3,8 @@
 
 An API Gateway that allows bridging HTTP with [Netifi Proteus](https://www.netifi.com).
 
+![diagram](diagram.png)
+
 ## What is Proteus?
 
 ## Bugs and Feedback
