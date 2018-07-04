@@ -43,6 +43,11 @@ The Proteus service response is sent to the Proteus Broker cluster via the same 
 The Proteus service response is converted into an HTTP response with a JSON message body and sent back to the requesting client to
 complete the interaction.
 
+## Building Proteus HTTP Gateway
+You can build Proteus HTTP Gateway as an executable jar using the following command:
+
+    $ ./gradlew clean build
+
 ## Bugs and Feedback
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/netifi-proteus/proteus-httpgateway/issues).
 
