@@ -10,6 +10,18 @@ The diagram below shows the high-level architecture of how messages are received
  
 ![diagram](diagram.png)
 
+1. Client makes an HTTP POST request to a URL in one of the following format:
+
+    If automatic load-balancing across a group of services is desired:
+    
+        https://{gateway host}/{group}/{service}/{method}
+   
+    If a specific service instance is desired:
+
+        https://{gateway host}/{group}/{destination}/{service}/{method}
+        
+    The request body must be in JSON format and the field names much match those of the service IDL.
+
 ## Bugs and Feedback
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/netifi-proteus/proteus-httpgateway/issues).
 
