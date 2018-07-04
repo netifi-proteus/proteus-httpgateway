@@ -24,6 +24,14 @@ If a specific service instance is desired:
     
 The request body must be in JSON format and the field names much match those of the service IDL.
 
+### 2. Map HTTP Request to Proteus IDL
+
+### 3. Create Bidirectional Communication Channel to Group
+
+### 4. Invoke Service Method
+
+### 5. 
+
 ## Bugs and Feedback
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/netifi-proteus/proteus-httpgateway/issues).
 
