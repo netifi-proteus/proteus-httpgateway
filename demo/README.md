@@ -43,7 +43,7 @@ Start the Proteus Broker by running the following command:
 ## Running the Demo
 Follow the steps below to run the demo:
 
-1. Ensure you have a running Proteus Broker by following the instructions under Prerequisites.
+1. Ensure you have a running Proteus Broker by following the instructions under [Prerequisites](## Prerequisites).
 
 2. Start the Hello World service by running the following command in a new terminal window:
 
