@@ -21,6 +21,10 @@ dependencies {
     compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
 }
 
+run {
+    systemProperties System.getProperties()
+}
+
 // TODO: Remove this once we shade Guava inside Proteus
 configurations.all {
     resolutionStrategy {
