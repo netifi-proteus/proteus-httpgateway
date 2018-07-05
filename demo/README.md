@@ -43,8 +43,24 @@ Start the Proteus Broker by running the following command:
 ## Running the Demo
 Follow the steps below to run the demo:
 
-1. Ensure you have a running Proteus Broker by following the instructions under [Prerequisites](## Prerequisites).
+1. Ensure you have a running Proteus Broker by following the instructions under Prerequisites.
 
-2. Start the Hello World service by running the following command in a new terminal window:
+2. Build the Demo project by running the following command:
 
-        $ ./gradlew :demo:helloworld-service run
+        $ ./gradlew clean build
+        
+3. Create a directory to hold idl jars somewhere on your system.
+
+    This temporary directory will serve as a place where Proteus IDL jars can be dropped and auto-detected by the HTTP Gateway.
+    
+4. Copy the `helloworld-idl.jar` jar file created during the build process into the idl directory you just created.
+
+    The `helloworld-idl.jar` file can be found under `demo/helloworld-idl/build/libs`.
+
+3. Start the Hello World service by running the following command in a new terminal window:
+
+        $ ./gradlew demo:helloworld-service:bootRun
+
+3. Start the Proteus HTTP Gateway by running the following command in a new terminal:
+
+        $ ./gradlew -Dnetifi.httpgateway.registrydir={idl directory you created} run
