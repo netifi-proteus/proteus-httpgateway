@@ -57,10 +57,36 @@ Follow the steps below to run the demo:
 
     The `helloworld-idl.jar` file can be found under `demo/helloworld-idl/build/libs`.
 
-3. Start the Hello World service by running the following command in a new terminal window:
+5. Start the Hello World service by running the following command in a new terminal window:
 
         $ ./gradlew demo:helloworld-service:bootRun
 
-3. Start the Proteus HTTP Gateway by running the following command in a new terminal:
+6. Start the Proteus HTTP Gateway by running the following command in a new terminal:
 
         $ ./gradlew -Dnetifi.httpgateway.registrydir={idl directory you created} run
+
+7. Run the following curl command to test that the HTTP Gateway is working:
+
+        $ curl -X "POST" "http://localhost:8080/hello.services/com.netifi.proteus.demo.helloworld.HelloWorldService/sayHello" \
+             -H 'Content-Type: application/json; charset=utf-8' \
+             -d $'{ "name": "World" }'
+             
+   If the request was successful you will receive a `200 OK` response with a hello message JSON body like this:
+   
+        * TCP_NODELAY set
+        * Connected to localhost (::1) port 8080 (#0)
+        > POST /hello.services/com.netifi.proteus.demo.helloworld.HelloWorldService/sayHello HTTP/1.1
+        > Host: localhost:8080
+        > User-Agent: curl/7.54.0
+        > Accept: */*
+        > Content-Type: application/json; charset=utf-8
+        > Content-Length: 19
+        >
+        * upload completely sent off: 19 out of 19 bytes
+        < HTTP/1.1 200 OK
+        < Content-Type: application/json;charset=UTF-8
+        < Content-Length: 32
+        <
+        {
+          "message": "Hello, World!"
+        }
