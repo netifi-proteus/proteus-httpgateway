@@ -15,12 +15,27 @@
  */
 package com.netifi.proteus.httpgateway.invocation;
 
+import org.springframework.http.HttpStatus;
+
 /**
- * Result returned from invocation of a {@link ServiceInvocation} object.
+ * Result returned from invocation of a {@link RequestReplyServiceInvocation} object.
  */
 public class ServiceInvocationResult {
+    private int httpStatus;
     private boolean success = false;
     private String response;
+
+    public static ServiceInvocationResult accepted() {
+        return new ServiceInvocationResult(HttpStatus.ACCEPTED.value(), true, null);
+    }
+
+    /**
+     * Create a successful result without a response message.
+     * @return a successful event
+     */
+    public static ServiceInvocationResult success() {
+        return new ServiceInvocationResult(HttpStatus.OK.value(), true, null);
+    }
 
     /**
      * Create a successful result.
@@ -29,7 +44,7 @@ public class ServiceInvocationResult {
      * @return a successful result
      */
     public static ServiceInvocationResult success(String response) {
-        return new ServiceInvocationResult(true, response);
+        return new ServiceInvocationResult(HttpStatus.OK.value(), true, response);
     }
 
     /**
@@ -38,7 +53,7 @@ public class ServiceInvocationResult {
      * @return a failed result
      */
     public static ServiceInvocationResult fail() {
-        return new ServiceInvocationResult(false, null);
+        return new ServiceInvocationResult(HttpStatus.BAD_GATEWAY.value(), false, null);
     }
 
     /**
@@ -47,9 +62,17 @@ public class ServiceInvocationResult {
      * @param success is the result successful or not
      * @param response response body as json string
      */
-    private ServiceInvocationResult(boolean success, String response) {
+    private ServiceInvocationResult(int httpStatus, boolean success, String response) {
+        this.httpStatus = httpStatus;
         this.success = success;
         this.response = response;
+    }
+
+    /**
+     * @return http status code to return
+     */
+    public int getHttpStatus() {
+        return httpStatus;
     }
 
     /**

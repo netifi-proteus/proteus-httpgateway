@@ -6,8 +6,12 @@ option java_package = "com.netifi.proteus.demo.helloworld";
 option java_outer_classname = "HelloWorldServiceProto";
 option java_multiple_files = true;
 
+import "google/protobuf/empty.proto";
+
 service HelloWorldService {
   rpc SayHello (HelloRequest) returns (HelloResponse) {}
+
+  rpc SayHelloToEmptyRoom (HelloRequest) returns (google.protobuf.Empty) {}
 }
 
 message HelloRequest {

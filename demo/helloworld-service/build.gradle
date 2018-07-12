@@ -16,7 +16,7 @@ dependencyManagement {
 
 dependencies {
     compile project(':demo:helloworld-idl')
-    compile 'com.netifi.proteus:proteus-spring-boot-starter:0.3.0'
+    compile 'com.netifi.proteus:proteus-spring-boot-starter:0.3.2'
 }
 
 configurations.all {

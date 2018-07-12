@@ -30,12 +30,17 @@ public class HttpGatewayConfiguration {
 
     @Bean
     public Proteus proteus(HttpGatewaySettings httpGatewaySettings, ProteusSettings proteusSettings) {
-        return Proteus.builder()
+        Proteus.Builder builder = Proteus.builder()
                 .group(httpGatewaySettings.getGroup())
                 .host(proteusSettings.getBrokerHostname())
                 .port(proteusSettings.getBrokerPort())
                 .accessKey(proteusSettings.getAccessKey())
-                .accessToken(proteusSettings.getAccessToken())
-                .build();
+                .accessToken(proteusSettings.getAccessToken());
+
+        if (proteusSettings.getPoolSize() != null) {
+            builder.poolSize(proteusSettings.getPoolSize());
+        }
+
+        return builder.build();
     }
 }

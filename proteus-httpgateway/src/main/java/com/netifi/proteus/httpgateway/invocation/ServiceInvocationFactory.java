@@ -18,6 +18,7 @@ package com.netifi.proteus.httpgateway.invocation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.protobuf.Empty;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
@@ -43,7 +44,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Factory for creating {@link ServiceInvocation} instances that wrap calls to Proteus services.
+ * Factory for creating {@link RequestReplyServiceInvocation} instances that wrap calls to Proteus services.
  */
 @Component
 public class ServiceInvocationFactory {
@@ -92,7 +93,7 @@ public class ServiceInvocationFactory {
      * @param service proteus service name
      * @param method proteus method name
      * @param body request body
-     * @return the {@link ServiceInvocation} to invoke
+     * @return the {@link RequestReplyServiceInvocation} to invoke
      */
     public ServiceInvocation create(String group, String destination, String service, String method, String body) {
         String key = group + destination;
@@ -138,26 +139,45 @@ public class ServiceInvocationFactory {
 
             for(Method clientMethod: regEntry.getClientMethods()) {
                 // Find client method to invoke
-                if (clientMethod.getParameterCount() == bodyParts.size()) {
-                    ProteusGeneratedMethod annotation = clientMethod.getAnnotation(ProteusGeneratedMethod.class);
-                    methodToInvoke = clientMethod;
-                    parameterTypes = new ArrayList<>(Arrays.asList(clientMethod.getParameterTypes()));
-                    responseType = annotation.returnTypeClass();
+                if (clientMethod.getName().equalsIgnoreCase(method)) {
+                    if (clientMethod.getParameterCount() == bodyParts.size()) {
+                        ProteusGeneratedMethod annotation = clientMethod.getAnnotation(ProteusGeneratedMethod.class);
+                        methodToInvoke = clientMethod;
+                        parameterTypes = new ArrayList<>(Arrays.asList(clientMethod.getParameterTypes()));
+                        responseType = annotation.returnTypeClass();
 
-                    for (int i = 0; i < parameterTypes.size(); i++) {
-                        parameters.add(createParameter(parameterTypes.get(i), bodyParts.get(i)));
+                        for (int i = 0; i < parameterTypes.size(); i++) {
+                            parameters.add(createParameter(parameterTypes.get(i), bodyParts.get(i)));
+                        }
+
+                        responseBuilder = createBuilder(responseType);
+
+                        break;
                     }
-
-                    responseBuilder = createBuilder(responseType);
-
-                    break;
                 }
             }
 
-            return new ServiceInvocation(client, methodToInvoke, parameterTypes, parameters, responseType, responseBuilder);
+            if (isFireAndForget(methodToInvoke)) {
+                return new FireAndForgetServiceInvocation(client, methodToInvoke, parameterTypes, parameters);
+            } else {
+                return new RequestReplyServiceInvocation(client, methodToInvoke, parameterTypes, parameters, responseType, responseBuilder);
+            }
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error occurred invoking Proteus service. [service='%s', method='%s'", service, method), e);
         }
+    }
+
+    /**
+     * Checks whether or not the method to call is a fire-and-forget method.
+     *
+     * @param method method to check
+     * @return <code>true</code> if the method is fire-and-forget, otherwise <code>false</code>
+     */
+    private boolean isFireAndForget(Method method) {
+        ProteusGeneratedMethod annotation = method.getAnnotation(ProteusGeneratedMethod.class);
+        Class<?> responseType = annotation.returnTypeClass();
+
+        return responseType.isAssignableFrom(Empty.class);
     }
 
     /**

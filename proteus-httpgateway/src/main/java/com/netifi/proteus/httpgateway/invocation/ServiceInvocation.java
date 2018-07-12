@@ -15,70 +15,9 @@
  */
 package com.netifi.proteus.httpgateway.invocation;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Message;
-import com.google.protobuf.util.JsonFormat;
 import reactor.core.publisher.Mono;
 
-import java.lang.reflect.Method;
-import java.util.List;
+public interface ServiceInvocation {
 
-/**
- * Wrapper around a Proteus service invocation.
- */
-public class ServiceInvocation {
-    private final Object client;
-    private final Method methodToInvoke;
-    private final List<Class<?>> parameterTypes;
-    private final Object[] parameters;
-    private final Class<?> responseType;
-    private final Object responseBuilder;
-
-    /**
-     * Creates a new instance of {@link ServiceInvocation}.
-     *
-     * @param client proteus client
-     * @param methodToInvoke method to invoke on client
-     * @param parameterTypes types of method parameters
-     * @param parameters method parameters objects
-     * @param responseType type of response object
-     * @param responseBuilder protobuf response builder
-     */
-    public ServiceInvocation(Object client,
-                             Method methodToInvoke,
-                             List<Class<?>> parameterTypes,
-                             List<Object> parameters,
-                             Class<?> responseType,
-                             Object responseBuilder) {
-        this.client = client;
-        this.methodToInvoke = methodToInvoke;
-        this.parameterTypes = parameterTypes;
-        this.parameters = parameters.toArray();
-        this.responseType = responseType;
-        this.responseBuilder = responseBuilder;
-    }
-
-    /**
-     * Invokes this {@link ServiceInvocation} and allows you to subscribe to result.
-     *
-     * @return a {@link Mono<ServiceInvocationResult>} with the result of the proteus service invocation
-     */
-    public Mono<ServiceInvocationResult> invoke() {
-        try {
-            methodToInvoke.setAccessible(true);
-            Mono<?> responseMono = (Mono<?>) methodToInvoke.invoke(client, parameters);
-            return responseMono.flatMap(o -> {
-                try {
-                    String response = JsonFormat.printer().includingDefaultValueFields().print((Message) o);
-                    return Mono.just(ServiceInvocationResult.success(response));
-                } catch (InvalidProtocolBufferException e) {
-                    throw new RuntimeException(e);
-                }
-            }).onErrorResume(throwable -> {
-                return Mono.just(ServiceInvocationResult.fail());
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    Mono<ServiceInvocationResult> invoke();
 }

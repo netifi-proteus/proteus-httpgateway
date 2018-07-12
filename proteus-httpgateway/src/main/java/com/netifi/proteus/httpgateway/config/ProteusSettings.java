@@ -42,6 +42,9 @@ public class ProteusSettings {
     @NotNull
     private String accessToken;
 
+    @Min(value = 1)
+    private Integer poolSize;
+
     @PostConstruct
     public void init() {
         if (StringUtils.isEmpty(brokerHostname)) {
@@ -83,5 +86,13 @@ public class ProteusSettings {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public Integer getPoolSize() {
+        return poolSize;
+    }
+
+    public void setPoolSize(Integer poolSize) {
+        this.poolSize = poolSize;
     }
 }

@@ -16,11 +16,14 @@
 package com.netifi.proteus.demo.helloworld;
 
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Component
 public class DefaultHelloWorldService implements HelloWorldService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultHelloWorldService.class);
 
     @Override
     public Mono<HelloResponse> sayHello(HelloRequest message, ByteBuf metadata) {
@@ -29,5 +32,11 @@ public class DefaultHelloWorldService implements HelloWorldService {
                     .setMessage("Hello, " + message.getName() + "!")
                     .build();
         });
+    }
+
+    @Override
+    public Mono<Void> sayHelloToEmptyRoom(HelloRequest message, ByteBuf metadata) {
+        LOGGER.info("Hello, {}!", message.getName());
+        return Mono.empty();
     }
 }
