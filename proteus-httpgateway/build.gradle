@@ -24,12 +24,3 @@ dependencies {
 run {
     systemProperties System.getProperties()
 }
-
-// TODO: Remove this once we shade Guava inside Proteus
-configurations.all {
-    resolutionStrategy {
-        dependencySubstitution {
-            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
-        }
-    }
-}
