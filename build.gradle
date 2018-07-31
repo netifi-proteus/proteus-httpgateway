@@ -23,6 +23,9 @@ allprojects {
         mavenLocal()
         jcenter()
         mavenCentral()
+        maven {
+            url = 'https://dl.bintray.com/netifi/netifi-oss'
+        }
     }
 
     license {
