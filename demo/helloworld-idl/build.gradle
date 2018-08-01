@@ -8,6 +8,8 @@ sourceCompatibility = 1.8
 dependencies {
     compile "io.netifi.proteus:core:${proteusVersion}"
     compile "com.google.protobuf:protobuf-java:${protobufVersion}"
+
+    protobuf "io.netifi.proteus:core-idl:${proteusVersion}"
 }
 
 protobuf {
