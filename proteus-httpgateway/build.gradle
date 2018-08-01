@@ -1,13 +1,18 @@
 plugins {
     id 'java'
     id 'application'
+    id 'maven-publish'
+    id 'com.palantir.docker' version '0.20.1'
     id 'org.springframework.boot' version '2.0.0.RELEASE'
     id 'io.spring.dependency-management' version '1.0.5.RELEASE'
 }
 
+apply from: file("${rootProject.projectDir}/gradle/java.gradle")
+
 sourceCompatibility = 1.8
 mainClassName = 'com.netifi.proteus.httpgateway.Main'
 
+// Dependency Management
 dependencyManagement {
     imports {
         mavenBom "io.spring.platform:platform-bom:${springbomVersion}"
@@ -21,15 +26,51 @@ dependencies {
     compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
 }
 
+// Run Configuration
 run {
     systemProperties System.getProperties()
 }
 
-// TODO: Remove this once we shade Guava inside Proteus
-configurations.all {
-    resolutionStrategy {
-        dependencySubstitution {
-            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
+// Artifact Packaging
+docker {
+    if (version.endsWith('SNAPSHOT')) {
+        if (project.hasProperty('commitHash')) {
+            name "netifi.azurecr.io/netifi/${bootJar.baseName}:$version-${commitHash}"
+        } else {
+            name "netifi.azurecr.io/netifi/${bootJar.baseName}:$version"
+        }
+    } else {
+        if (project.hasProperty('isRelease')) {
+            name "netifi.azurecr.io/netifi/${bootJar.baseName}"
+            tags "$version"
+        } else {
+            name "netifi.azurecr.io/netifi/${bootJar.baseName}:$version"
+        }
+    }
+    dockerfile file("${projectDir}/Dockerfile")
+    files bootJar.archivePath
+    buildArgs([JAR_FILE: "${bootJar.archiveName}"])
+}
+
+// Artifact Publishing
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            artifact distZip
+            artifact distTar
+        }
+    }
+
+    repositories {
+        maven {
+            url = version.endsWith('SNAPSHOT') ? 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local' : 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+            credentials {
+                username = "$netifiArtifactoryUsername"
+                password = "$netifiArtifactoryPassword"
+            }
         }
     }
 }
