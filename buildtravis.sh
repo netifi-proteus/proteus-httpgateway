@@ -19,9 +19,9 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == release/* ]
     echo -e 'Build Branch for Release => Branch ['$TRAVIS_BRANCH']'
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin netifi.azurecr.io
     ./gradlew clean build publish docker dockerPush --stacktrace
-elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_TAG" != "" ]; then
+elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
     # Master Branch
-    echo -e 'Build Master for Release => Branch ['$TRAVIS_BRANCH'] Tag ['$TRAVIS_TAG']'
+    echo -e 'Build Master for Release => Branch ['$TRAVIS_BRANCH']'
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin netifi.azurecr.io
     export ORG_GRADLE_PROJECT_isRelease=true
     ./gradlew clean build publish docker dockerPush --stacktrace
