@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo -e "TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
 if [ "$TRAVIS_PULL_REQUEST" == "true" ]; then
     # Pull Request
     echo -e "Build Pull Request #$TRAVIS_PULL_REQUEST => Branch [$TRAVIS_BRANCH]"
