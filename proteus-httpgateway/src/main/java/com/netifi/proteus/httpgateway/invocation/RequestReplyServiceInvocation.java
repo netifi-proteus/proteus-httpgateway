@@ -61,7 +61,7 @@ public class RequestReplyServiceInvocation implements ServiceInvocation {
     /**
      * Invokes this {@link RequestReplyServiceInvocation} and allows you to subscribe to result.
      *
-     * @return a {@link Mono<ServiceInvocationResult>} with the result of the proteus service invocation
+     * @return a {@link Mono} with the result of the proteus service invocation
      */
     public Mono<ServiceInvocationResult> invoke() {
         try {
