@@ -9,7 +9,7 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "develop" ] 
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin netifi.azurecr.io
     export ORG_GRADLE_PROJECT_commitHash=${TRAVIS_COMMIT::7}
     ./gradlew clean build publish docker dockerPush --stacktrace
-elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == "release/*" ]] && [ "$TRAVIS_TAG" == "" ]; then
+elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == release/* ]] && [ "$TRAVIS_TAG" == "" ]; then
     # Release Branch
     echo -e 'Build Branch for Release => Branch ['$TRAVIS_BRANCH']'
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin netifi.azurecr.io
