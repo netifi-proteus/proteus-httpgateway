@@ -28,13 +28,6 @@ allprojects {
         maven {
             url = 'https://dl.bintray.com/netifi/netifi-oss'
         }
-        maven {
-            url = 'https://artifactory.netifiinc.com/artifactory/libs-release'
-            credentials {
-                username = "$netifiArtifactoryUsername"
-                password = "$netifiArtifactoryPassword"
-            }
-        }
     }
 
     license {
