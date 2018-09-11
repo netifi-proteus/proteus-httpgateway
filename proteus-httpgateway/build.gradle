@@ -35,16 +35,16 @@ run {
 docker {
     if (version.endsWith('SNAPSHOT')) {
         if (project.hasProperty('commitHash')) {
-            name "netifi.azurecr.io/netifi/${bootJar.baseName}:$version-${commitHash}"
+            name "netifi/${bootJar.baseName}:$version-${commitHash}"
         } else {
-            name "netifi.azurecr.io/netifi/${bootJar.baseName}:$version"
+            name "netifi/${bootJar.baseName}:$version"
         }
     } else {
         if (project.hasProperty('isRelease')) {
-            name "netifi.azurecr.io/netifi/${bootJar.baseName}"
+            name "netifi/${bootJar.baseName}"
             tags "$version"
         } else {
-            name "netifi.azurecr.io/netifi/${bootJar.baseName}:$version"
+            name "netifi/${bootJar.baseName}:$version"
         }
     }
     dockerfile file("${projectDir}/Dockerfile")
@@ -61,16 +61,6 @@ publishing {
             artifact javadocJar
             artifact distZip
             artifact distTar
-        }
-    }
-
-    repositories {
-        maven {
-            url = version.endsWith('SNAPSHOT') ? 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local' : 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
-            credentials {
-                username = "$netifiArtifactoryUsername"
-                password = "$netifiArtifactoryPassword"
-            }
         }
     }
 }

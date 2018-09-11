@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:11-jdk
 MAINTAINER Netifi Inc. <info@netifi.com>
 VOLUME /tmp
 EXPOSE 8080
