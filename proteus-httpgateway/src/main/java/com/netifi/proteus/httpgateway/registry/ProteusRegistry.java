@@ -17,8 +17,8 @@ package com.netifi.proteus.httpgateway.registry;
 
 import com.netifi.proteus.httpgateway.config.HttpGatewaySettings;
 import com.netifi.proteus.httpgateway.util.JarUtil;
-import io.netifi.proteus.annotations.internal.ProteusGenerated;
-import io.netifi.proteus.annotations.internal.ProteusResourceType;
+import io.rsocket.rpc.annotations.internal.Generated;
+import io.rsocket.rpc.annotations.internal.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -108,7 +108,7 @@ public class ProteusRegistry {
                 Class<?> clazz = classLoader.loadClass(className);
 
                 if (isProteusClient(clazz)) {
-                    Class<?> serviceClazz = clazz.getAnnotation(ProteusGenerated.class).idlClass();
+                    Class<?> serviceClazz = clazz.getAnnotation(Generated.class).idlClass();
 
                     ProteusRegistryEntry regEntry = new ProteusRegistryEntry(clazz);
 
@@ -137,10 +137,10 @@ public class ProteusRegistry {
      */
     private boolean isProteusClient(Class<?> clazz) {
         if (clazz != null) {
-            if (clazz.isAnnotationPresent(ProteusGenerated.class)) {
-                ProteusGenerated annotation = clazz.getAnnotation(ProteusGenerated.class);
+            if (clazz.isAnnotationPresent(Generated.class)) {
+                Generated annotation = clazz.getAnnotation(Generated.class);
 
-                if (annotation.type() == ProteusResourceType.CLIENT) {
+                if (annotation.type() == ResourceType.CLIENT) {
                     if (!clazz.getSimpleName().startsWith("Blocking")) {
                         return true;
                     }

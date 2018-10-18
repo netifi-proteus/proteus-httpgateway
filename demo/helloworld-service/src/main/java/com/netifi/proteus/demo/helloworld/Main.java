@@ -15,12 +15,10 @@
  */
 package com.netifi.proteus.demo.helloworld;
 
-import com.netifi.proteus.springboot.EnableProteus;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@EnableProteus(group = "hello.services")
 public class Main {
 
     public static void main(String... args) {

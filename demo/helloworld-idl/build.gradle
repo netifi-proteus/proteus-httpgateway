@@ -6,10 +6,11 @@ plugins {
 sourceCompatibility = 1.8
 
 dependencies {
-    compile "io.netifi.proteus:core:${proteusVersion}"
+    compile "io.rsocket.rpc:rsocket-rpc-core:$rsocketRpcVersion"
+    compile "io.rsocket.rpc:rsocket-rpc-protobuf:$rsocketRpcVersion"
     compile "com.google.protobuf:protobuf-java:${protobufVersion}"
 
-    protobuf "io.netifi.proteus:core-idl:${proteusVersion}"
+    protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:$rsocketRpcVersion"
 }
 
 protobuf {
@@ -20,12 +21,12 @@ protobuf {
     }
 
     plugins {
-        proteus {
-            artifact = "io.netifi.proteus:protobuf-rpc:${proteusVersion}"
+        rsocketRpc {
+            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf:$rsocketRpcVersion"
         }
         generateProtoTasks {
             ofSourceSet('main')*.plugins {
-                proteus {}
+                rsocketRpc {}
             }
         }
     }

@@ -7,13 +7,13 @@ option java_outer_classname = "HelloWorldServiceProto";
 option java_multiple_files = true;
 
 import "google/protobuf/empty.proto";
-import "proteus/core.proto";
+import "rsocket/options.proto";
 
 service HelloWorldService {
   rpc SayHello (HelloRequest) returns (HelloResponse) {}
 
   rpc SayHelloToEmptyRoom (HelloRequest) returns (google.protobuf.Empty) {
-      option (io.netifi.proteus.options) = {
+      option (io.rsocket.rpc.options) = {
         fire_and_forget: true
       };
   }
