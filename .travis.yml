@@ -17,4 +17,3 @@ cache:
   - "$HOME/.m2"
 env:
   global:
-  
