@@ -25,7 +25,7 @@ import com.netifi.proteus.httpgateway.registry.ProteusRegistry;
 import com.netifi.proteus.httpgateway.registry.ProteusRegistryEntry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.netifi.proteus.Proteus;
-import io.netifi.proteus.annotations.internal.ProteusGeneratedMethod;
+import io.rsocket.rpc.annotations.internal.GeneratedMethod;
 import io.netifi.proteus.rsocket.ProteusSocket;
 import io.rsocket.RSocket;
 import org.slf4j.Logger;
@@ -141,7 +141,7 @@ public class ServiceInvocationFactory {
                 // Find client method to invoke
                 if (clientMethod.getName().equalsIgnoreCase(method)) {
                     if (clientMethod.getParameterCount() == bodyParts.size()) {
-                        ProteusGeneratedMethod annotation = clientMethod.getAnnotation(ProteusGeneratedMethod.class);
+                        GeneratedMethod annotation = clientMethod.getAnnotation(GeneratedMethod.class);
                         methodToInvoke = clientMethod;
                         parameterTypes = new ArrayList<>(Arrays.asList(clientMethod.getParameterTypes()));
                         responseType = annotation.returnTypeClass();
@@ -174,7 +174,7 @@ public class ServiceInvocationFactory {
      * @return <code>true</code> if the method is fire-and-forget, otherwise <code>false</code>
      */
     private boolean isFireAndForget(Method method) {
-        ProteusGeneratedMethod annotation = method.getAnnotation(ProteusGeneratedMethod.class);
+        GeneratedMethod annotation = method.getAnnotation(GeneratedMethod.class);
         Class<?> responseType = annotation.returnTypeClass();
 
         return responseType.isAssignableFrom(Empty.class);
