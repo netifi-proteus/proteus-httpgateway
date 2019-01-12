@@ -5,6 +5,7 @@ plugins {
     id 'com.palantir.docker' version '0.20.1'
     id 'org.springframework.boot' version '2.0.0.RELEASE'
     id 'io.spring.dependency-management' version '1.0.5.RELEASE'
+    id 'com.google.protobuf' version '0.8.3'
 }
 
 apply from: file("${rootProject.projectDir}/gradle/java.gradle")
@@ -21,9 +22,15 @@ dependencyManagement {
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-webflux'
+    compile 'io.projectreactor.addons:reactor-extra:3.2.1.RELEASE'
     compile "io.netifi.proteus:proteus-client:${proteusVersion}"
     compile "com.google.protobuf:protobuf-java:${protobufVersion}"
     compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+
+    protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:$rsocketRpcVersion"
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-all:1.10.19'
 }
 
 // Run Configuration
@@ -63,4 +70,54 @@ publishing {
             artifact distTar
         }
     }
+}
+
+protobuf {
+    generatedFilesBaseDir = "${projectDir}/src/generated"
+
+    protoc {
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
+    }
+    plugins {
+        rsocketRpc {
+            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf:$rsocketRpcVersion"
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            // Recompile protos when build.gradle has been changed, because
+            // it's possible the version of protoc has been changed.
+            task.inputs.file "${rootProject.projectDir}/build.gradle"
+            task.plugins {
+                rsocketRpc {}
+            }
+
+            // Generate a descriptor
+            task.generateDescriptorSet = true
+            task.descriptorSetOptions.path =
+                    "${projectDir}/build/descriptors/${task.sourceSet.name}.dsc"
+            task.descriptorSetOptions.includeSourceInfo = true
+            task.descriptorSetOptions.includeImports = true
+        }
+    }
+}
+
+clean {
+    delete protobuf.generatedFilesBaseDir
+}
+
+idea {
+    module {
+        sourceDirs += file("src/main/proto")
+        sourceDirs += file("src/generated/main/java")
+        sourceDirs += file("src/generated/main/rsocketRpc")
+
+        generatedSourceDirs += file('src/generated/main/java')
+        generatedSourceDirs += file('src/generated/main/rsocketRpc')
+
+    }
+}
+
+clean {
+    delete 'src/generated/main'
 }

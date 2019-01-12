@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package proteus_gateway;
+
+import "google/protobuf/descriptor.proto";
+
+option java_package = "com.netifi.proteus.gateway";
+option java_outer_classname = "ProteusOptions";
+option java_multiple_files = true;
+
+extend google.protobuf.FileOptions {
+  ProteusFileOptions global = 50000;
+}
+
+extend google.protobuf.ServiceOptions {
+  ProteusServiceOptions service = 50000;
+}
+
+extend google.protobuf.MethodOptions {
+  ProteusMethodOptions method = 50000;
+}
+
+message ProteusFileOptions {
+  string group = 1;
+}
+
+message ProteusMethodOptions {
+  string url            = 1;
+  int64 timeout_millis  = 2;
+  int32 max_concurrency = 3;
+}
+
+message ProteusServiceOptions {
+  string url                   = 1;
+  int64 global_timeout_millis  = 2;
+  int32 global_max_concurrency = 3;
+}

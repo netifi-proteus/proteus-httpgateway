@@ -1,6 +1,5 @@
 plugins {
     id 'com.gradle.build-scan' version '1.15.1'
-    id 'com.github.hierynomus.license' version '0.14.0'
     id 'net.saliman.properties' version '1.4.6'
 }
 
@@ -11,7 +10,6 @@ buildScan {
 }
 
 allprojects {
-    apply plugin: 'com.github.hierynomus.license'
     apply plugin: 'idea'
     apply plugin: 'net.saliman.properties'
 
@@ -37,8 +35,4 @@ allprojects {
         }
     }
 
-    license {
-        header rootProject.file('codequality/HEADER')
-        strictCheck true
-    }
 }
