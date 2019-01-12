@@ -18,10 +18,12 @@ import com.netifi.proteus.httpgateway.endpoint.registry.EndpointRegistry;
 import com.netifi.proteus.httpgateway.util.HttpUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -42,6 +44,7 @@ public class HttpGatewayController implements CommandLineRunner {
 
   private final EndpointRegistry registry;
 
+  @Autowired
   public HttpGatewayController(
       @Value("${netifi.proteus.gateway.bindAddress}") String bindAddress,
       @Value("${netifi.proteus.gateway.bindPort}") int bindPort,
@@ -65,6 +68,12 @@ public class HttpGatewayController implements CommandLineRunner {
   }
 
   protected Publisher<Void> handle(HttpServerRequest request, HttpServerResponse response) {
+    
+    if (request.method() != HttpMethod.POST) {
+      response.status(HttpResponseStatus.METHOD_NOT_ALLOWED);
+      return response.send();
+    }
+    
     String uri = HttpUtil.stripTrailingSlash(request.uri());
 
     Endpoint endpoint = registry.lookup(uri);

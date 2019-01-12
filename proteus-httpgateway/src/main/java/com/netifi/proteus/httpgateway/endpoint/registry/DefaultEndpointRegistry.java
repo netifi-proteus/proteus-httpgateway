@@ -19,6 +19,8 @@ import com.netifi.proteus.httpgateway.endpoint.factory.EndpointFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.retry.Retry;
 
@@ -26,12 +28,14 @@ import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class DefaultEndpointRegistry implements EndpointRegistry {
-  private Logger logger = LogManager.getLogger(DefaultEndpointRegistry.class);
-  private ConcurrentHashMap<String, Endpoint> endpoints;
+  private static final Logger logger = LogManager.getLogger(DefaultEndpointRegistry.class);
+  private final ConcurrentHashMap<String, Endpoint> endpoints;
 
   @Autowired
   public DefaultEndpointRegistry(EndpointFactory endpointFactory) {
+    this.endpoints = new ConcurrentHashMap<>();
     endpointFactory
         .streamEndpoints()
         .doOnError(throwable -> logger.error("error processing endpoint events", throwable))
