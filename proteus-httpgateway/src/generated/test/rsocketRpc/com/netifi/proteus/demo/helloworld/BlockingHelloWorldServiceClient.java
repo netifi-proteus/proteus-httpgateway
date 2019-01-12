@@ -40,6 +40,30 @@ public final class BlockingHelloWorldServiceClient implements BlockingHelloWorld
   }
 
   @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public  io.rsocket.rpc.BlockingIterable<com.netifi.proteus.demo.helloworld.HelloResponse> streamResponseWithUrl(com.netifi.proteus.demo.helloworld.HelloRequest message) {
+    return streamResponseWithUrl(message, io.netty.buffer.Unpooled.EMPTY_BUFFER);
+  }
+
+  @java.lang.Override
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public  io.rsocket.rpc.BlockingIterable<com.netifi.proteus.demo.helloworld.HelloResponse> streamResponseWithUrl(com.netifi.proteus.demo.helloworld.HelloRequest message, io.netty.buffer.ByteBuf metadata) {
+    reactor.core.publisher.Flux stream = delegate.streamResponseWithUrl(message, metadata);
+    return new  io.rsocket.rpc.BlockingIterable<>(stream, reactor.util.concurrent.Queues.SMALL_BUFFER_SIZE, reactor.util.concurrent.Queues.small());
+  }
+
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public  io.rsocket.rpc.BlockingIterable<com.netifi.proteus.demo.helloworld.HelloResponse> channelWithUrl(Iterable<com.netifi.proteus.demo.helloworld.HelloRequest> messages) {
+    return channelWithUrl(messages, io.netty.buffer.Unpooled.EMPTY_BUFFER);
+  }
+
+  @java.lang.Override
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public  io.rsocket.rpc.BlockingIterable<com.netifi.proteus.demo.helloworld.HelloResponse> channelWithUrl(Iterable<com.netifi.proteus.demo.helloworld.HelloRequest> messages, io.netty.buffer.ByteBuf metadata) {
+    reactor.core.publisher.Flux stream = delegate.channelWithUrl(reactor.core.publisher.Flux.defer(() -> reactor.core.publisher.Flux.fromIterable(messages)), metadata);
+    return new  io.rsocket.rpc.BlockingIterable<>(stream, reactor.util.concurrent.Queues.SMALL_BUFFER_SIZE, reactor.util.concurrent.Queues.small());
+  }
+
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
   public com.netifi.proteus.demo.helloworld.HelloResponse sayHelloWithTimeout(com.netifi.proteus.demo.helloworld.HelloRequest message) {
     return sayHelloWithTimeout(message, io.netty.buffer.Unpooled.EMPTY_BUFFER);
   }

@@ -22,6 +22,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import reactor.netty.http.server.HttpServer;
@@ -29,27 +30,32 @@ import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
 import java.nio.charset.Charset;
-import java.util.Objects;
 
 @Component
 public class HttpGatewayController implements CommandLineRunner {
   private static final Logger logger = LogManager.getLogger(HttpGatewayController.class);
   private static final Charset CHARSET = Charset.forName("UTF-8");
+
   private final String bindAddress;
+
   private final int bindPort;
+
   private final EndpointRegistry registry;
 
-  public HttpGatewayController(String bindAddress, String bindPort, EndpointRegistry registry) {
-    this.bindAddress = Objects.requireNonNull(bindAddress);
-    this.bindPort = Integer.parseInt(Objects.requireNonNull(bindPort));
+  public HttpGatewayController(
+      @Value("${netifi.proteus.gateway.bindAddress}") String bindAddress,
+      @Value("${netifi.proteus.gateway.bindPort}") int bindPort,
+      EndpointRegistry registry) {
+    this.bindAddress = bindAddress;
+    this.bindPort = bindPort;
     this.registry = registry;
   }
 
   @Override
   public void run(String... args) throws Exception {
     logger.info("Starting Proteus HTTP Gateway");
-    logger.info("Binding to Address {}");
-    logger.info("Binding to Port {}");
+    logger.info("Binding to Address {}", bindAddress);
+    logger.info("Binding to Port {}", bindPort);
     HttpServer.create()
         .host(bindAddress)
         .port(bindPort)

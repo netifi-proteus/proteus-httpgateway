@@ -13,6 +13,8 @@ public final class BlockingHelloWorldServiceServer extends io.rsocket.rpc.Abstra
   private final reactor.core.scheduler.Scheduler scheduler;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> sayHello;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> sayHelloWithUrl;
+  private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> streamResponseWithUrl;
+  private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> channelWithUrl;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> sayHelloWithTimeout;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> sayHelloWithMaxConcurrent;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<Void>, ? extends org.reactivestreams.Publisher<Void>> sayHelloToEmptyRoom;
@@ -23,12 +25,16 @@ public final class BlockingHelloWorldServiceServer extends io.rsocket.rpc.Abstra
     if (!registry.isPresent()) {
       this.sayHello = java.util.function.Function.identity();
       this.sayHelloWithUrl = java.util.function.Function.identity();
+      this.streamResponseWithUrl = java.util.function.Function.identity();
+      this.channelWithUrl = java.util.function.Function.identity();
       this.sayHelloWithTimeout = java.util.function.Function.identity();
       this.sayHelloWithMaxConcurrent = java.util.function.Function.identity();
       this.sayHelloToEmptyRoom = java.util.function.Function.identity();
     } else {
       this.sayHello = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO);
       this.sayHelloWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO_WITH_URL);
+      this.streamResponseWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_STREAM_RESPONSE_WITH_URL);
+      this.channelWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_CHANNEL_WITH_URL);
       this.sayHelloWithTimeout = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO_WITH_TIMEOUT);
       this.sayHelloWithMaxConcurrent = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO_WITH_MAX_CONCURRENT);
       this.sayHelloToEmptyRoom = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO_TO_EMPTY_ROOM);
@@ -105,17 +111,52 @@ public final class BlockingHelloWorldServiceServer extends io.rsocket.rpc.Abstra
 
   @java.lang.Override
   public reactor.core.publisher.Flux<io.rsocket.Payload> requestStream(io.rsocket.Payload payload) {
-    return reactor.core.publisher.Flux.error(new UnsupportedOperationException("Request-Stream not implemented."));
+    try {
+      io.netty.buffer.ByteBuf metadata = payload.sliceMetadata();
+      switch(io.rsocket.rpc.frames.Metadata.getMethod(metadata)) {
+        case BlockingHelloWorldService.METHOD_STREAM_RESPONSE_WITH_URL: {
+          com.google.protobuf.CodedInputStream is = com.google.protobuf.CodedInputStream.newInstance(payload.getData());
+          com.netifi.proteus.demo.helloworld.HelloRequest message = com.netifi.proteus.demo.helloworld.HelloRequest.parseFrom(is);
+          return reactor.core.publisher.Flux.defer(() -> reactor.core.publisher.Flux.fromIterable(service.streamResponseWithUrl(message, metadata)).map(serializer).transform(streamResponseWithUrl)).subscribeOn(scheduler);
+        }
+        default: {
+          return reactor.core.publisher.Flux.error(new UnsupportedOperationException());
+        }
+      }
+    } catch (Throwable t) {
+      return reactor.core.publisher.Flux.error(t);
+    } finally {
+      payload.release();
+    }
   }
 
   @java.lang.Override
   public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, reactor.core.publisher.Flux<io.rsocket.Payload> publisher) {
-    return reactor.core.publisher.Flux.error(new UnsupportedOperationException("Request-Channel not implemented."));
+    try {
+      io.netty.buffer.ByteBuf metadata = payload.sliceMetadata();
+      switch(io.rsocket.rpc.frames.Metadata.getMethod(metadata)) {
+        case BlockingHelloWorldService.METHOD_CHANNEL_WITH_URL: {
+          reactor.core.publisher.Flux<com.netifi.proteus.demo.helloworld.HelloRequest> messages =
+            publisher.map(deserializer(com.netifi.proteus.demo.helloworld.HelloRequest.parser()));
+          return reactor.core.publisher.Flux.defer(() -> reactor.core.publisher.Flux.fromIterable(service.channelWithUrl(messages.toIterable(), metadata)).map(serializer).transform(channelWithUrl)).subscribeOn(scheduler);
+        }
+        default: {
+          return reactor.core.publisher.Flux.error(new UnsupportedOperationException());
+        }
+      }
+    } catch (Throwable t) {
+      return reactor.core.publisher.Flux.error(t);
+    }
   }
 
   @java.lang.Override
   public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(org.reactivestreams.Publisher<io.rsocket.Payload> payloads) {
-    return reactor.core.publisher.Flux.error(new UnsupportedOperationException("Request-Channel not implemented."));
+    return new io.rsocket.internal.SwitchTransformFlux<io.rsocket.Payload, io.rsocket.Payload>(payloads, new java.util.function.BiFunction<io.rsocket.Payload, reactor.core.publisher.Flux<io.rsocket.Payload>, org.reactivestreams.Publisher<? extends io.rsocket.Payload>>() {
+      @java.lang.Override
+      public org.reactivestreams.Publisher<io.rsocket.Payload> apply(io.rsocket.Payload payload, reactor.core.publisher.Flux<io.rsocket.Payload> publisher) {
+        return requestChannel(payload, publisher);
+      }
+    });
   }
 
   private static final java.util.function.Function<com.google.protobuf.MessageLite, io.rsocket.Payload> serializer =

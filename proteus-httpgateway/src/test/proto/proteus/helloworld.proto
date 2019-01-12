@@ -18,7 +18,15 @@ service HelloWorldService {
   rpc SayHello (HelloRequest) returns (HelloResponse) {}
 
   rpc SayHelloWithUrl (HelloRequest) returns (HelloResponse) {
-      option (proteus_gateway.method).url = "/say";
+        option (proteus_gateway.method).url = "/say";
+    }
+
+  rpc StreamResponseWithUrl (HelloRequest) returns (stream HelloResponse) {
+   option (proteus_gateway.method).url = "/say";
+  }
+
+  rpc ChannelWithUrl (stream HelloRequest) returns (stream HelloResponse) {
+    option (proteus_gateway.method).url = "/say";
   }
 
   rpc SayHelloWithTimeout (HelloRequest) returns (HelloResponse) {

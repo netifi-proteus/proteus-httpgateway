@@ -38,26 +38,33 @@ public final class HelloWorldServiceProto {
       "empty.proto\032\025rsocket/options.proto\032\025prot" +
       "eus/gateway.proto\"\034\n\014HelloRequest\022\014\n\004nam" +
       "e\030\001 \001(\t\" \n\rHelloResponse\022\017\n\007message\030\001 \001(" +
-      "\t2\270\005\n\021HelloWorldService\022q\n\010SayHello\0220.co" +
+      "\t2\331\007\n\021HelloWorldService\022q\n\010SayHello\0220.co" +
       "m.netifi.proteus.demo.helloworld.HelloRe" +
       "quest\0321.com.netifi.proteus.demo.hellowor" +
       "ld.HelloResponse\"\000\022\202\001\n\017SayHelloWithUrl\0220" +
       ".com.netifi.proteus.demo.helloworld.Hell" +
       "oRequest\0321.com.netifi.proteus.demo.hello" +
-      "world.HelloResponse\"\n\202\265\030\006\n\004/say\022\221\001\n\023SayH" +
-      "elloWithTimeout\0220.com.netifi.proteus.dem" +
-      "o.helloworld.HelloRequest\0321.com.netifi.p" +
-      "roteus.demo.helloworld.HelloResponse\"\025\202\265" +
-      "\030\n\n\010/timeout\202\265\030\003\020\320\017\022\235\001\n\031SayHelloWithMaxC" +
-      "oncurrent\0220.com.netifi.proteus.demo.hell" +
-      "oworld.HelloRequest\0321.com.netifi.proteus" +
-      ".demo.helloworld.HelloResponse\"\033\202\265\030\n\n\010/t" +
-      "imeout\202\265\030\003\020\320\017\202\265\030\002\030\n\022f\n\023SayHelloToEmptyRo" +
-      "om\0220.com.netifi.proteus.demo.helloworld." +
-      "HelloRequest\032\026.google.protobuf.Empty\"\005\212B" +
-      "\002\010\001\032\017\202\265\030\013\n\t/v1/helloBN\n\"com.netifi.prote" +
-      "us.demo.helloworldB\026HelloWorldServicePro" +
-      "toP\001\202\265\030\014\n\nhelloGroupb\006proto3"
+      "world.HelloResponse\"\n\202\265\030\006\n\004/say\022\212\001\n\025Stre" +
+      "amResponseWithUrl\0220.com.netifi.proteus.d" +
+      "emo.helloworld.HelloRequest\0321.com.netifi" +
+      ".proteus.demo.helloworld.HelloResponse\"\n" +
+      "\202\265\030\006\n\004/say0\001\022\205\001\n\016ChannelWithUrl\0220.com.ne" +
+      "tifi.proteus.demo.helloworld.HelloReques" +
+      "t\0321.com.netifi.proteus.demo.helloworld.H" +
+      "elloResponse\"\n\202\265\030\006\n\004/say(\0010\001\022\221\001\n\023SayHell" +
+      "oWithTimeout\0220.com.netifi.proteus.demo.h" +
+      "elloworld.HelloRequest\0321.com.netifi.prot" +
+      "eus.demo.helloworld.HelloResponse\"\025\202\265\030\n\n" +
+      "\010/timeout\202\265\030\003\020\320\017\022\235\001\n\031SayHelloWithMaxConc" +
+      "urrent\0220.com.netifi.proteus.demo.hellowo" +
+      "rld.HelloRequest\0321.com.netifi.proteus.de" +
+      "mo.helloworld.HelloResponse\"\033\202\265\030\n\n\010/time" +
+      "out\202\265\030\003\020\320\017\202\265\030\002\030\n\022r\n\023SayHelloToEmptyRoom\022" +
+      "0.com.netifi.proteus.demo.helloworld.Hel" +
+      "loRequest\032\026.google.protobuf.Empty\"\021\202\265\030\010\n" +
+      "\006/empty\212B\002\010\001\032\017\202\265\030\013\n\t/v1/helloBN\n\"com.net" +
+      "ifi.proteus.demo.helloworldB\026HelloWorldS" +
+      "erviceProtoP\001\202\265\030\014\n\nhelloGroupb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

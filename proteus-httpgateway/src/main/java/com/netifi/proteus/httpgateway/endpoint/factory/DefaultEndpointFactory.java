@@ -1,3 +1,16 @@
+/**
+ * Copyright 2018 Netifi Inc.
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.netifi.proteus.httpgateway.endpoint.factory;
 
 import com.google.protobuf.*;
@@ -21,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.netifi.proteus.httpgateway.util.HttpUtil.addTrailingSlash;
+import static com.netifi.proteus.httpgateway.util.HttpUtil.stripLeadingSlash;
 import static com.netifi.proteus.httpgateway.util.ProtoUtil.*;
 
 @Component
@@ -49,11 +63,22 @@ public class DefaultEndpointFactory implements EndpointFactory {
 
   protected Flux<EndpointEvent> handleEvent(ProtoDescriptor protoDescriptor) {
     ProtoDescriptor.EventType type = protoDescriptor.getType();
+    long start = System.currentTimeMillis();
     switch (type) {
       case ADD:
-        return addEvent(protoDescriptor);
+        return addEvent(protoDescriptor)
+            .doFinally(
+                s ->
+                    logger.info(
+                        "ADD Event took {} milliseconds to process",
+                        (System.currentTimeMillis() - start)));
       case REPLACE:
-        return replaceEvent(protoDescriptor);
+        return replaceEvent(protoDescriptor)
+            .doFinally(
+                s ->
+                    logger.info(
+                        "REPLACE Event took {} milliseconds to process",
+                        (System.currentTimeMillis() - start)));
       case DELETE:
         return deleteEvent(protoDescriptor);
       default:
@@ -70,7 +95,7 @@ public class DefaultEndpointFactory implements EndpointFactory {
               return Flux.fromIterable(proto.getMessageTypeList())
                   .collectMap(
                       descriptorProto -> {
-                        String s = _package + descriptorProto.getName();
+                        String s = _package + "." + descriptorProto.getName();
                         logger.info("adding message named {} to the message dictionary", s);
                         return s;
                       });
@@ -149,7 +174,7 @@ public class DefaultEndpointFactory implements EndpointFactory {
                         }));
   }
 
-  public Flux<EndpointEvent> processServices(
+  Flux<EndpointEvent> processServices(
       EndpointEvent.Type type,
       String group,
       List<DescriptorProtos.ServiceDescriptorProto> serviceList,
@@ -160,11 +185,11 @@ public class DefaultEndpointFactory implements EndpointFactory {
               UnknownFieldSet.Field field =
                   proto.getOptions().getUnknownFields().getField(PROTEUS_SERVICE_OPTIONS);
 
+              String name = proto.getName();
               if (isFieldPresent(field, PROTEUS_SERVICE_OPTIONS__URL)) {
                 String baseUrl = fieldToString(field, PROTEUS_SERVICE_OPTIONS__URL);
 
-                logger.info(
-                    "service named {} is mapped to url {} - processing", proto.getName(), baseUrl);
+                logger.info("service named {} is mapped to url {} - processing", name, baseUrl);
 
                 long globalTimoutMillis = -1;
                 int globalMaxCurrency = Runtime.getRuntime().availableProcessors() * 100;
@@ -172,14 +197,18 @@ public class DefaultEndpointFactory implements EndpointFactory {
                   globalTimoutMillis =
                       fieldToLong(field, PROTEUS_SERVICE_OPTIONS__GLOBAL_TIMEOUT_MILLIS);
                   logger.info(
-                      "service named {} has a global time in millis -> ", globalTimoutMillis);
+                      "service named {} has a global time in millis -> {}",
+                      name,
+                      globalTimoutMillis);
                 }
 
                 if (isFieldPresent(field, PROTEUS_SERVICE_OPTIONS__GLOBAL_MAX_CONCURRENCY)) {
                   globalMaxCurrency =
                       fieldToInteger(field, PROTEUS_SERVICE_OPTIONS__GLOBAL_MAX_CONCURRENCY);
                   logger.info(
-                      "service named {} has a global max concurrency -> ", globalTimoutMillis);
+                      "service named {} has a global max concurrency -> {}",
+                      name,
+                      globalMaxCurrency);
                 }
 
                 return processEndpoint(
@@ -191,13 +220,13 @@ public class DefaultEndpointFactory implements EndpointFactory {
                     proto.getMethodList(),
                     dictionary);
               } else {
-                logger.info("no url found for service named {} - skipping", proto.getName());
+                logger.info("no url found for service named {} - skipping", name);
                 return Flux.empty();
               }
             });
   }
 
-  public Flux<EndpointEvent> processEndpoint(
+  Flux<EndpointEvent> processEndpoint(
       EndpointEvent.Type type,
       final String group,
       final String baseUrl,
@@ -209,7 +238,11 @@ public class DefaultEndpointFactory implements EndpointFactory {
         .flatMap(
             proto -> {
               // Don't support streaming yet - skip
+              String name = proto.getName();
               if (proto.getClientStreaming() || proto.getServerStreaming()) {
+                logger.info(
+                    "proteus gateway doesn't support stream end points yet - skipping method {}",
+                    name);
                 return Flux.empty();
               }
 
@@ -217,15 +250,18 @@ public class DefaultEndpointFactory implements EndpointFactory {
                   proto.getOptions().getUnknownFields().getField(PROTEUS_METHOD_OPTIONS);
 
               if (isFieldPresent(field, PROTEUS_METHOD_OPTIONS__URL)) {
-                String url = baseUrl + fieldToString(field, PROTEUS_METHOD_OPTIONS__URL);
+                String url = baseUrl + stripLeadingSlash(fieldToString(field, PROTEUS_METHOD_OPTIONS__URL));
+                logger.info("found url {} for method {} - generating ending point", url, name);
                 long timeoutMillis = globalTimoutMillis;
                 int maxConcurrency = globalMaxCurrency;
                 if (isFieldPresent(field, PROTEUS_METHOD_OPTIONS__TIMEOUT_MILLIS)) {
                   timeoutMillis = fieldToLong(field, PROTEUS_METHOD_OPTIONS__TIMEOUT_MILLIS);
+                  logger.info("setting method {} timeout millis to {}", name, timeoutMillis);
                 }
 
                 if (isFieldPresent(field, PROTEUS_METHOD_OPTIONS__MAX_CONCURRENCY)) {
                   maxConcurrency = fieldToInteger(field, PROTEUS_METHOD_OPTIONS__MAX_CONCURRENCY);
+                  logger.info("setting method {} max concurrency to {}", name, maxConcurrency);
                 }
 
                 field = proto.getOptions().getUnknownFields().getField(RSOCKET_RPC_OPTIONS);
@@ -251,7 +287,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
                           hasTimeout,
                           timeout,
                           maxConcurrency);
-                  logger.info("creating new fire and forget endpoint for url {}", url);
+                  logger.info(
+                      "creating new fire and forget endpoint for method {} with url {}", name, url);
                 } else {
                   endpoint =
                       new RequestResponseEndpoint(
@@ -262,7 +299,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
                           hasTimeout,
                           timeout,
                           maxConcurrency);
-                  logger.info("creating new request / response endpoint for url", url);
+                  logger.info(
+                      "creating new request / response endpoint for method {} with url", name, url);
                 }
 
                 return Mono.just(new EndpointEvent(url, endpoint, type));

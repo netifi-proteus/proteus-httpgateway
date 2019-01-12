@@ -9,6 +9,8 @@ public interface BlockingHelloWorldService {
   String SERVICE_ID = "com.netifi.proteus.demo.helloworld.HelloWorldService";
   String METHOD_SAY_HELLO = "SayHello";
   String METHOD_SAY_HELLO_WITH_URL = "SayHelloWithUrl";
+  String METHOD_STREAM_RESPONSE_WITH_URL = "StreamResponseWithUrl";
+  String METHOD_CHANNEL_WITH_URL = "ChannelWithUrl";
   String METHOD_SAY_HELLO_WITH_TIMEOUT = "SayHelloWithTimeout";
   String METHOD_SAY_HELLO_WITH_MAX_CONCURRENT = "SayHelloWithMaxConcurrent";
   String METHOD_SAY_HELLO_TO_EMPTY_ROOM = "SayHelloToEmptyRoom";
@@ -20,6 +22,14 @@ public interface BlockingHelloWorldService {
   /**
    */
   com.netifi.proteus.demo.helloworld.HelloResponse sayHelloWithUrl(com.netifi.proteus.demo.helloworld.HelloRequest message, io.netty.buffer.ByteBuf metadata);
+
+  /**
+   */
+  Iterable<com.netifi.proteus.demo.helloworld.HelloResponse> streamResponseWithUrl(com.netifi.proteus.demo.helloworld.HelloRequest message, io.netty.buffer.ByteBuf metadata);
+
+  /**
+   */
+  Iterable<com.netifi.proteus.demo.helloworld.HelloResponse> channelWithUrl(Iterable<com.netifi.proteus.demo.helloworld.HelloRequest> messages, io.netty.buffer.ByteBuf metadata);
 
   /**
    */

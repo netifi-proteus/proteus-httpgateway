@@ -1,75 +1,85 @@
 plugins {
     id 'java'
     id 'application'
-    id 'maven-publish'
-    id 'com.palantir.docker' version '0.20.1'
-    id 'org.springframework.boot' version '2.0.0.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.5.RELEASE'
-    id 'com.google.protobuf' version '0.8.3'
+    id 'com.bmuschko.docker-java-application' version '4.2.0'
+    id 'io.spring.dependency-management' version '1.0.6.RELEASE'
+    id 'com.google.protobuf' version '0.8.5'
 }
 
-apply from: file("${rootProject.projectDir}/gradle/java.gradle")
+docker {
+    registryCredentials {
+        url = 'https://netifi.azurecr.io'
+        username = project.findProperty('netifiPrivateDockerRegistryUsername') ?: System.getenv("DOCKER_NETIFI_USERNAME")
+        password = project.findProperty('netifiPrivateDockerRegistryPassword') ?: System.getenv("DOCKER_NETIFI_PASSWORD")
+    }
+    javaApplication {
+        baseImage = 'openjdk:11-jre-slim'
+        maintainer = 'Netifi'
+        ports = []
+    }
+}
 
-sourceCompatibility = 1.8
 mainClassName = 'com.netifi.proteus.httpgateway.Main'
 
-// Dependency Management
 dependencyManagement {
     imports {
-        mavenBom "io.spring.platform:platform-bom:${springbomVersion}"
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootBomVersion}"
     }
 }
 
 dependencies {
-    compile 'org.springframework.boot:spring-boot-starter-webflux'
-    compile 'io.projectreactor.addons:reactor-extra:3.2.1.RELEASE'
-    compile "io.netifi.proteus:proteus-client:${proteusVersion}"
+
+    compile 'org.springframework.boot:spring-boot-starter'
+    
+    compile "io.netifi.proteus:proteus-metrics-micrometer:$proteusVersion"
+
+    compile "com.google.protobuf:protobuf-java:$protobufVersion"
     compile "com.google.protobuf:protobuf-java:${protobufVersion}"
     compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+
+    compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
+    compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+
+    compile "com.lmax:disruptor:$lmaxVersion"
+
+    compile 'io.projectreactor.addons:reactor-extra:3.2.1.RELEASE'
 
     protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:$rsocketRpcVersion"
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.10.19'
+
 }
 
-// Run Configuration
-run {
-    systemProperties System.getProperties()
-}
+applicationDefaultJvmArgs = [
+        '-XX:+IgnoreUnrecognizedVMOptions',
+        '-XshowSettings:vm',
+        '-XX:+UseG1GC',
+        '-XX:MaxGCPauseMillis=200',
+        '-XX:+AlwaysPreTouch',
+        '-XX:+UseStringDeduplication',
+        '-XX:+ExplicitGCInvokesConcurrent',
+        '-XX:+ParallelRefProcEnabled',
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+UseCGroupMemoryLimitForHeap',
+        '-XX:InitialRAMPercentage=70',
+        '-XX:MaxRAMPercentage=70',
+        '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+        '-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector'
+]
 
-// Artifact Packaging
-docker {
-    if (version.endsWith('SNAPSHOT')) {
-        if (project.hasProperty('commitHash')) {
-            name "netifi/${bootJar.baseName}:$version-${commitHash}"
-        } else {
-            name "netifi/${bootJar.baseName}:$version"
-        }
-    } else {
-        if (project.hasProperty('isRelease')) {
-            name "netifi/${bootJar.baseName}"
-            tags "$version"
-        } else {
-            name "netifi/${bootJar.baseName}:$version"
-        }
-    }
-    dockerfile file("${projectDir}/Dockerfile")
-    files bootJar.archivePath
-    buildArgs([JAR_FILE: "${bootJar.archiveName}"])
-}
-
-// Artifact Publishing
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            artifact distZip
-            artifact distTar
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
         }
     }
+}
+
+configurations {
+    providedRuntime
+    compile.exclude(group: 'ch.qos.logback')
 }
 
 protobuf {

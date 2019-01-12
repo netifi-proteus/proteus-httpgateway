@@ -1,23 +1,17 @@
-plugins {
-    id 'com.gradle.build-scan' version '1.15.1'
-    id 'net.saliman.properties' version '1.4.6'
-}
-
-buildScan {
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-    publishAlways()
-}
-
-allprojects {
+subprojects {
     apply plugin: 'idea'
-    apply plugin: 'net.saliman.properties'
+
+    group 'io.netifi.proteus.quickstart'
+    version '1.5.3'
 
     ext {
         protobufVersion = '3.6.1'
-        rsocketRpcVersion = '0.2.12'
         proteusVersion = '1.5.3'
-        springbomVersion = 'Cairo-SR3'
+        rsocketRpcVersion = '0.2.12'
+        proteusSpringVersion = '1.5.3'
+        springBootBomVersion = '2.1.1.RELEASE'
+        log4jVersion = '2.8.2'
+        lmaxVersion = '3.3.6'
     }
 
     repositories {
@@ -34,5 +28,4 @@ allprojects {
             }
         }
     }
-
 }
