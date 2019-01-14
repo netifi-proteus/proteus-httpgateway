@@ -99,49 +99,46 @@ public abstract class AbstractEndpoint<T> implements Endpoint {
 
   @Override
   public Publisher<Void> apply(HttpHeaders headers, String json, HttpServerResponse response) {
-    try {
-      return start(response)
-          .thenMany(
-              Flux.defer(
-                  () -> {
-                    try {
-                      RSocket rSocket = rSocketSupplier.apply(defaultGroup, headers);
+    return start(response)
+        .thenMany(
+            Flux.defer(
+                () -> {
+                  try {
+                    RSocket rSocket = rSocketSupplier.apply(defaultGroup, headers);
 
-                      Message message;
-                      if (isRequestEmpty()) {
-                        message = Empty.getDefaultInstance();
-                      } else {
-                        DynamicMessage.Builder builder = DynamicMessage.newBuilder(request);
-                        JsonFormat.parser().merge(json, builder);
-                        message = builder.build();
-                      }
-
-                      ByteBuf data = serialize(message);
-                      ByteBuf metadata =
-                          Metadata.encode(
-                              ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
-                      Payload request = ByteBufPayload.create(data, metadata);
-
-                      return applyTimeout(doApply(rSocket, request))
-                          .flatMap(t -> doHandleResponse(t, response))
-                          .onErrorResume(
-                              throwable -> {
-                                if (throwable instanceof TimeoutException) {
-                                  response.status(HttpResponseStatus.REQUEST_TIMEOUT);
-                                } else {
-                                  response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-                                }
-
-                                return response.send();
-                              })
-                          .doFinally(s -> end());
-                    } catch (Exception e) {
-                      return Flux.error(e);
+                    Message message;
+                    if (isRequestEmpty()) {
+                      message = Empty.getDefaultInstance();
+                    } else {
+                      DynamicMessage.Builder builder = DynamicMessage.newBuilder(request);
+                      JsonFormat.parser().merge(json, builder);
+                      message = builder.build();
                     }
-                  }));
-    } finally {
-      end();
-    }
+
+                    ByteBuf data = serialize(message);
+                    ByteBuf metadata =
+                        Metadata.encode(
+                            ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
+                    Payload request = ByteBufPayload.create(data, metadata);
+
+                    return applyTimeout(doApply(rSocket, request))
+                        .flatMap(t -> doHandleResponse(t, response))
+                        .onErrorResume(
+                            throwable -> {
+                              if (throwable instanceof TimeoutException) {
+                                response.status(HttpResponseStatus.REQUEST_TIMEOUT);
+                              } else {
+                                response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                              }
+
+                              return response.send();
+                            })
+                        .doFinally(s -> end());
+                  } catch (Exception e) {
+                    return Flux.error(e);
+                  }
+                }))
+        .doFinally(s -> end());
   }
 
   private ByteBuf serialize(MessageLite message) {

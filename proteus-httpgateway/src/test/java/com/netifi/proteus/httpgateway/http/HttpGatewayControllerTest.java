@@ -17,6 +17,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ForkJoinPool;
 
 public class HttpGatewayControllerTest {
   @ClassRule public static HttpGatewayControllerRule rule = new HttpGatewayControllerRule();
@@ -88,25 +90,25 @@ public class HttpGatewayControllerTest {
   @Test
   public void testShouldGetResponseFromEndpointUsingPost() throws Exception {
     String request =
-      JsonFormat.printer()
-        .print(HelloRequest.newBuilder().setName("testShouldGetResponseFromEndpoint").build());
-    
+        JsonFormat.printer()
+            .print(HelloRequest.newBuilder().setName("testShouldGetResponseFromEndpoint").build());
+
     HttpResponse<String> resp =
-      HttpClient.newHttpClient()
-        .send(
-          HttpRequest.newBuilder(
-            URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/say"))
-            .POST(HttpRequest.BodyPublishers.ofString(request))
-            .header("Content-Type", "application/json")
-            .build(),
-          HttpResponse.BodyHandlers.ofString());
-    
+        HttpClient.newHttpClient()
+            .send(
+                HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/say"))
+                    .POST(HttpRequest.BodyPublishers.ofString(request))
+                    .header("Content-Type", "application/json")
+                    .build(),
+                HttpResponse.BodyHandlers.ofString());
+
     String body = resp.body();
-    
+
     HelloResponse.Builder builder = HelloResponse.newBuilder();
     JsonFormat.parser().merge(body, builder);
     HelloResponse response = builder.build();
-    
+
     Assert.assertEquals(200, resp.statusCode());
     Assert.assertEquals("yo - testShouldGetResponseFromEndpoint", response.getMessage());
     Assert.assertEquals(1000, response.getTime());
@@ -129,6 +131,42 @@ public class HttpGatewayControllerTest {
                 HttpResponse.BodyHandlers.ofString());
 
     Assert.assertEquals(HttpResponseStatus.REQUEST_TIMEOUT.code(), resp.statusCode());
+  }
+
+  @Test(timeout = 5000)
+  public void testShouldTestMaxRequests() throws Exception {
+    String request =
+        JsonFormat.printer()
+            .print(HelloRequest.newBuilder().setName("testShouldTestMaxRequests").build());
+
+    CountDownLatch latch = new CountDownLatch(1);
+    while (latch.getCount() > 0) {
+      ForkJoinPool.commonPool()
+          .execute(
+              () -> {
+                try {
+                  HttpResponse<String> resp =
+                      HttpClient.newHttpClient()
+                          .send(
+                              HttpRequest.newBuilder(
+                                      URI.create(
+                                          "http://localhost:"
+                                              + rule.getBindPort()
+                                              + "/v1/hello/max"))
+                                  .POST(HttpRequest.BodyPublishers.ofString(request))
+                                  .header("Content-Type", "application/json")
+                                  .build(),
+                              HttpResponse.BodyHandlers.ofString());
+
+                  if (HttpResponseStatus.TOO_MANY_REQUESTS.code() == resp.statusCode()) {
+                    latch.countDown();
+                  }
+                } catch (Throwable t) {
+                }
+              });
+    }
+
+    latch.await();
   }
 
   @Test
