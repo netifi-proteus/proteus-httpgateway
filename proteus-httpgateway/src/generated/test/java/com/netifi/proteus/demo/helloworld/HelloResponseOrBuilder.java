@@ -16,4 +16,9 @@ public interface HelloResponseOrBuilder extends
    */
   com.google.protobuf.ByteString
       getMessageBytes();
+
+  /**
+   * <code>int64 time = 2;</code>
+   */
+  long getTime();
 }

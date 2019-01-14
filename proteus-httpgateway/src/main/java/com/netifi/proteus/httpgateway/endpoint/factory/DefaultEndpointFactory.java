@@ -14,6 +14,7 @@
 package com.netifi.proteus.httpgateway.endpoint.factory;
 
 import com.google.protobuf.*;
+import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.endpoint.Endpoint;
 import com.netifi.proteus.httpgateway.endpoint.FireAndForgetEndpoint;
 import com.netifi.proteus.httpgateway.endpoint.RequestResponseEndpoint;
@@ -147,6 +148,16 @@ public class DefaultEndpointFactory implements EndpointFactory {
                     .put(endpointEvent.getUrl(), endpointEvent.getEndpoint()));
   }
 
+  private JsonFormat.TypeRegistry generateTypeRegistry(
+      Map<String, DescriptorProtos.DescriptorProto> dictionary) {
+    JsonFormat.TypeRegistry.Builder builder = JsonFormat.TypeRegistry.newBuilder();
+    for (DescriptorProtos.DescriptorProto p : dictionary.values()) {
+      builder.add(p.getDescriptorForType());
+    }
+
+    return builder.build();
+  }
+
   Flux<EndpointEvent> mutatingEvent(EndpointEvent.Type type, ProtoDescriptor protoDescriptor) {
 
     DescriptorProtos.FileDescriptorSet set;
@@ -158,22 +169,25 @@ public class DefaultEndpointFactory implements EndpointFactory {
 
     return generateDescriptorProtosDictionary(set)
         .flatMapMany(
-            dictionary ->
-                Flux.fromIterable(set.getFileList())
-                    .flatMap(
-                        proto -> {
-                          UnknownFieldSet.Field field =
-                              proto.getOptions().getUnknownFields().getField(PROTEUS_FILE_OPTIONS);
+            dictionary -> {
+              JsonFormat.TypeRegistry registry = generateTypeRegistry(dictionary);
 
-                          if (isFieldPresent(field, PROTEUS_FILE_OPTIONS__GROUP)) {
-                            String _package = proto.getPackage();
-                            String group = fieldToString(field, PROTEUS_FILE_OPTIONS__GROUP);
-                            return processServices(
-                                _package, type, group, proto.getServiceList(), dictionary);
-                          } else {
-                            return Flux.empty();
-                          }
-                        }));
+              return Flux.fromIterable(set.getFileList())
+                  .flatMap(
+                      proto -> {
+                        UnknownFieldSet.Field field =
+                            proto.getOptions().getUnknownFields().getField(PROTEUS_FILE_OPTIONS);
+
+                        if (isFieldPresent(field, PROTEUS_FILE_OPTIONS__GROUP)) {
+                          String _package = proto.getPackage();
+                          String group = fieldToString(field, PROTEUS_FILE_OPTIONS__GROUP);
+                          return processServices(
+                              _package, type, group, proto.getServiceList(), dictionary, registry);
+                        } else {
+                          return Flux.empty();
+                        }
+                      });
+            });
   }
 
   Flux<EndpointEvent> processServices(
@@ -181,7 +195,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
       EndpointEvent.Type type,
       String group,
       List<DescriptorProtos.ServiceDescriptorProto> serviceList,
-      Map<String, DescriptorProtos.DescriptorProto> dictionary) {
+      Map<String, DescriptorProtos.DescriptorProto> dictionary,
+      JsonFormat.TypeRegistry registry) {
     return Flux.fromIterable(serviceList)
         .flatMap(
             proto -> {
@@ -222,7 +237,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
                     globalTimoutMillis,
                     globalMaxCurrency,
                     proto.getMethodList(),
-                    dictionary);
+                    dictionary,
+                    registry);
               } else {
                 logger.info("no url found for service named {} - skipping", service);
                 return Flux.empty();
@@ -238,7 +254,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
       final long globalTimoutMillis,
       final int globalMaxCurrency,
       List<DescriptorProtos.MethodDescriptorProto> methodList,
-      Map<String, DescriptorProtos.DescriptorProto> dictionary) {
+      Map<String, DescriptorProtos.DescriptorProto> dictionary,
+      JsonFormat.TypeRegistry registry) {
     return Flux.fromIterable(methodList)
         .flatMap(
             proto -> {
@@ -295,7 +312,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
                           rSocketSupplier,
                           hasTimeout,
                           timeout,
-                          maxConcurrency);
+                          maxConcurrency,
+                          registry);
                   logger.info(
                       "creating new fire and forget endpoint for method {} with url {}",
                       method,
@@ -311,7 +329,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
                           rSocketSupplier,
                           hasTimeout,
                           timeout,
-                          maxConcurrency);
+                          maxConcurrency,
+                          registry);
                   logger.info(
                       "creating new request / response endpoint for method {} with url",
                       method,

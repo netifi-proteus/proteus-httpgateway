@@ -13,12 +13,14 @@ import com.netifi.proteus.httpgateway.rsocket.ProteusRSocketSupplier;
 import com.netifi.proteus.httpgateway.rsocket.RSocketSupplier;
 import io.netifi.proteus.Proteus;
 import io.netty.buffer.ByteBuf;
+import org.junit.Ignore;
 import org.junit.rules.ExternalResource;
 import reactor.core.publisher.DirectProcessor;
 
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Ignore
 public class HttpGatewayControllerRule extends ExternalResource {
   private static final long ACCESS_KEY = 9007199254740991L;
   private static final String ACCESS_TOKEN = "kTBDVtfRBO4tHOnZzSyY5ym2kfY=";

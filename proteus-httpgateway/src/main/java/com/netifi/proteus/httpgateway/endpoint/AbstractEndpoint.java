@@ -28,8 +28,6 @@ import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.rpc.frames.Metadata;
 import io.rsocket.util.ByteBufPayload;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.reactivestreams.Publisher;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
@@ -40,8 +38,6 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractEndpoint implements Endpoint {
-  private static final Logger logger = LogManager.getLogger(AbstractEndpoint.class);
-
   private final Descriptor request;
   private final Descriptor response;
   private final String defaultGroup;
@@ -52,6 +48,7 @@ public abstract class AbstractEndpoint implements Endpoint {
   private final AtomicInteger outstandingRequests;
   private final String service;
   private final String method;
+  private final JsonFormat.TypeRegistry typeRegistry;
 
   public AbstractEndpoint(
       String service,
@@ -62,7 +59,8 @@ public abstract class AbstractEndpoint implements Endpoint {
       RSocketSupplier rSocketSupplier,
       boolean hasTimeout,
       Duration timeout,
-      int maxConcurrency) {
+      int maxConcurrency,
+      JsonFormat.TypeRegistry typeRegistry) {
     this.service = service;
     this.method = method;
     this.request = request;
@@ -73,39 +71,21 @@ public abstract class AbstractEndpoint implements Endpoint {
     this.timeout = timeout;
     this.maxConcurrency = maxConcurrency;
     this.outstandingRequests = new AtomicInteger();
+    this.typeRegistry = typeRegistry;
   }
 
-  private DynamicMessage parseFrom(Descriptor descriptor, ByteBuf byteBuf) {
+  String parseResponseToJson(ByteBuf byteBuf) {
     try {
       ByteBuffer byteBuffer = byteBuf.internalNioBuffer(0, byteBuf.readableBytes());
-      return DynamicMessage.parseFrom(descriptor, CodedInputStream.newInstance(byteBuffer));
-    } catch (Exception e) {
-      throw Exceptions.propagate(e);
+      DynamicMessage message =
+          DynamicMessage.parseFrom(response, CodedInputStream.newInstance(byteBuffer));
+      return JsonFormat.printer()
+          .omittingInsignificantWhitespace()
+          .usingTypeRegistry(typeRegistry)
+          .print(message);
+    } catch (Throwable t) {
+      throw Exceptions.propagate(t);
     }
-  }
-
-  protected DynamicMessage parseRequest(ByteBuf byteBuf) {
-    return parseFrom(request, byteBuf);
-  }
-
-  protected DynamicMessage parseResponse(ByteBuf byteBuf) {
-    return parseFrom(response, byteBuf);
-  }
-
-  protected String toJson(DynamicMessage message) {
-    try {
-      String json = JsonFormat.printer().omittingInsignificantWhitespace().print(message);
-      if (logger.isDebugEnabled()) {
-        logger.debug("json response [{}]", json);
-      }
-      return json;
-    } catch (Exception e) {
-      throw Exceptions.propagate(e);
-    }
-  }
-
-  protected String parseResponseToJson(ByteBuf byteBuf) {
-    return toJson(parseRequest(byteBuf));
   }
 
   @Override
@@ -144,7 +124,7 @@ public abstract class AbstractEndpoint implements Endpoint {
     }
   }
 
-  protected Flux<Void> applyTimeout(Publisher<Void> target) {
+  private Flux<Void> applyTimeout(Publisher<Void> target) {
     Flux<Void> from = Flux.from(target);
     if (hasTimeout) {
       from = from.timeout(timeout);
@@ -153,7 +133,7 @@ public abstract class AbstractEndpoint implements Endpoint {
     return from;
   }
 
-  protected void startRequest() {
+  private void startRequest() {
     outstandingRequests.updateAndGet(
         operand -> {
           if (operand == maxConcurrency) {
@@ -165,7 +145,7 @@ public abstract class AbstractEndpoint implements Endpoint {
         });
   }
 
-  protected void endReqeust() {
+  private void endReqeust() {
     outstandingRequests.decrementAndGet();
   }
 

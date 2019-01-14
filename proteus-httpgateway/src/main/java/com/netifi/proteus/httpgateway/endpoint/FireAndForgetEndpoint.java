@@ -14,6 +14,7 @@
 package com.netifi.proteus.httpgateway.endpoint;
 
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.rsocket.RSocketSupplier;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
@@ -23,16 +24,7 @@ import reactor.netty.http.server.HttpServerResponse;
 import java.time.Duration;
 
 public class FireAndForgetEndpoint extends AbstractEndpoint {
-  public FireAndForgetEndpoint(
-      String service,
-      String method,
-      Descriptors.Descriptor request,
-      Descriptors.Descriptor response,
-      String defaultGroup,
-      RSocketSupplier rSocketSupplier,
-      boolean hasTimeout,
-      Duration timeout,
-      int maxConcurrency) {
+  public FireAndForgetEndpoint(String service, String method, Descriptors.Descriptor request, Descriptors.Descriptor response, String defaultGroup, RSocketSupplier rSocketSupplier, boolean hasTimeout, Duration timeout, int maxConcurrency, JsonFormat.TypeRegistry typeRegistry) {
     super(
         service,
         method,
@@ -42,9 +34,10 @@ public class FireAndForgetEndpoint extends AbstractEndpoint {
         rSocketSupplier,
         hasTimeout,
         timeout,
-        maxConcurrency);
+        maxConcurrency,
+        typeRegistry);
   }
-
+  
   @Override
   protected Publisher<Void> doApply(RSocket rSocket, Payload request, HttpServerResponse response) {
     return rSocket.fireAndForget(request).then(response.send());

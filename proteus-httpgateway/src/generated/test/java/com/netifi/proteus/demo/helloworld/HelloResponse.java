@@ -17,6 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private HelloResponse() {
     message_ = "";
+    time_ = 0L;
   }
 
   @java.lang.Override
@@ -47,6 +48,11 @@ private static final long serialVersionUID = 0L;
             java.lang.String s = input.readStringRequireUtf8();
 
             message_ = s;
+            break;
+          }
+          case 16: {
+
+            time_ = input.readInt64();
             break;
           }
           default: {
@@ -115,6 +121,15 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int TIME_FIELD_NUMBER = 2;
+  private long time_;
+  /**
+   * <code>int64 time = 2;</code>
+   */
+  public long getTime() {
+    return time_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -132,6 +147,9 @@ private static final long serialVersionUID = 0L;
     if (!getMessageBytes().isEmpty()) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, message_);
     }
+    if (time_ != 0L) {
+      output.writeInt64(2, time_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -143,6 +161,10 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (!getMessageBytes().isEmpty()) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, message_);
+    }
+    if (time_ != 0L) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(2, time_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -162,6 +184,8 @@ private static final long serialVersionUID = 0L;
     boolean result = true;
     result = result && getMessage()
         .equals(other.getMessage());
+    result = result && (getTime()
+        == other.getTime());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -175,6 +199,9 @@ private static final long serialVersionUID = 0L;
     hash = (19 * hash) + getDescriptor().hashCode();
     hash = (37 * hash) + MESSAGE_FIELD_NUMBER;
     hash = (53 * hash) + getMessage().hashCode();
+    hash = (37 * hash) + TIME_FIELD_NUMBER;
+    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+        getTime());
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -310,6 +337,8 @@ private static final long serialVersionUID = 0L;
       super.clear();
       message_ = "";
 
+      time_ = 0L;
+
       return this;
     }
 
@@ -337,6 +366,7 @@ private static final long serialVersionUID = 0L;
     public com.netifi.proteus.demo.helloworld.HelloResponse buildPartial() {
       com.netifi.proteus.demo.helloworld.HelloResponse result = new com.netifi.proteus.demo.helloworld.HelloResponse(this);
       result.message_ = message_;
+      result.time_ = time_;
       onBuilt();
       return result;
     }
@@ -388,6 +418,9 @@ private static final long serialVersionUID = 0L;
       if (!other.getMessage().isEmpty()) {
         message_ = other.message_;
         onChanged();
+      }
+      if (other.getTime() != 0L) {
+        setTime(other.getTime());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -483,6 +516,32 @@ private static final long serialVersionUID = 0L;
   checkByteStringIsUtf8(value);
       
       message_ = value;
+      onChanged();
+      return this;
+    }
+
+    private long time_ ;
+    /**
+     * <code>int64 time = 2;</code>
+     */
+    public long getTime() {
+      return time_;
+    }
+    /**
+     * <code>int64 time = 2;</code>
+     */
+    public Builder setTime(long value) {
+      
+      time_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>int64 time = 2;</code>
+     */
+    public Builder clearTime() {
+      
+      time_ = 0L;
       onChanged();
       return this;
     }

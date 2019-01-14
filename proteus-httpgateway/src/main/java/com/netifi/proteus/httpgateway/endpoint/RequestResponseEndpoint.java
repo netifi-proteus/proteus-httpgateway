@@ -14,6 +14,7 @@
 package com.netifi.proteus.httpgateway.endpoint;
 
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.rsocket.RSocketSupplier;
 import io.netty.buffer.ByteBuf;
 import io.rsocket.Payload;
@@ -34,7 +35,8 @@ public class RequestResponseEndpoint extends AbstractEndpoint {
       RSocketSupplier rSocketSupplier,
       boolean hasTimeout,
       Duration timeout,
-      int maxConcurrency) {
+      int maxConcurrency,
+      JsonFormat.TypeRegistry typeRegistry) {
     super(
         service,
         method,
@@ -44,7 +46,8 @@ public class RequestResponseEndpoint extends AbstractEndpoint {
         rSocketSupplier,
         hasTimeout,
         timeout,
-        maxConcurrency);
+        maxConcurrency,
+        typeRegistry);
   }
 
   @Override

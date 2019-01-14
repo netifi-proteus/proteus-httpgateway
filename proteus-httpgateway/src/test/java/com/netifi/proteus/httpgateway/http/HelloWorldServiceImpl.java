@@ -13,7 +13,11 @@ import java.time.Duration;
 class HelloWorldServiceImpl implements HelloWorldService {
   @Override
   public Mono<HelloResponse> sayHello(HelloRequest message, ByteBuf metadata) {
-    return Mono.just(HelloResponse.newBuilder().setMessage("yo").build());
+    return Mono.just(
+        HelloResponse.newBuilder()
+            .setMessage("yo - " + message.getName())
+            .setTime(System.currentTimeMillis())
+            .build());
   }
 
   @Override
