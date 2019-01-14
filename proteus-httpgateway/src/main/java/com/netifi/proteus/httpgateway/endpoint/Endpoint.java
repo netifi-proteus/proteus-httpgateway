@@ -20,4 +20,8 @@ import reactor.netty.http.server.HttpServerResponse;
 @FunctionalInterface
 public interface Endpoint  {
   Publisher<Void> apply(HttpHeaders headers, String json, HttpServerResponse response);
+  
+  default boolean isRequestEmpty() {
+    return false;
+  }
 }

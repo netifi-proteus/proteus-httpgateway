@@ -13,6 +13,7 @@ public final class BlockingHelloWorldServiceServer extends io.rsocket.rpc.Abstra
   private final reactor.core.scheduler.Scheduler scheduler;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> sayHello;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> sayHelloWithUrl;
+  private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> getHello;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> streamResponseWithUrl;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> channelWithUrl;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<io.rsocket.Payload>, ? extends org.reactivestreams.Publisher<io.rsocket.Payload>> sayHelloWithTimeout;
@@ -25,6 +26,7 @@ public final class BlockingHelloWorldServiceServer extends io.rsocket.rpc.Abstra
     if (!registry.isPresent()) {
       this.sayHello = java.util.function.Function.identity();
       this.sayHelloWithUrl = java.util.function.Function.identity();
+      this.getHello = java.util.function.Function.identity();
       this.streamResponseWithUrl = java.util.function.Function.identity();
       this.channelWithUrl = java.util.function.Function.identity();
       this.sayHelloWithTimeout = java.util.function.Function.identity();
@@ -33,6 +35,7 @@ public final class BlockingHelloWorldServiceServer extends io.rsocket.rpc.Abstra
     } else {
       this.sayHello = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO);
       this.sayHelloWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO_WITH_URL);
+      this.getHello = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_GET_HELLO);
       this.streamResponseWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_STREAM_RESPONSE_WITH_URL);
       this.channelWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_CHANNEL_WITH_URL);
       this.sayHelloWithTimeout = io.rsocket.rpc.metrics.Metrics.timed(registry.get(), "rsocket.server", "service", BlockingHelloWorldService.SERVICE_ID, "method", BlockingHelloWorldService.METHOD_SAY_HELLO_WITH_TIMEOUT);
@@ -87,6 +90,11 @@ public final class BlockingHelloWorldServiceServer extends io.rsocket.rpc.Abstra
           com.google.protobuf.CodedInputStream is = com.google.protobuf.CodedInputStream.newInstance(payload.getData());
           com.netifi.proteus.demo.helloworld.HelloRequest message = com.netifi.proteus.demo.helloworld.HelloRequest.parseFrom(is);
           return reactor.core.publisher.Mono.fromSupplier(() -> service.sayHelloWithUrl(message, metadata)).map(serializer).transform(sayHelloWithUrl).subscribeOn(scheduler);
+        }
+        case HelloWorldService.METHOD_GET_HELLO: {
+          com.google.protobuf.CodedInputStream is = com.google.protobuf.CodedInputStream.newInstance(payload.getData());
+          com.google.protobuf.Empty message = com.google.protobuf.Empty.parseFrom(is);
+          return reactor.core.publisher.Mono.fromSupplier(() -> service.getHello(message, metadata)).map(serializer).transform(getHello).subscribeOn(scheduler);
         }
         case HelloWorldService.METHOD_SAY_HELLO_WITH_TIMEOUT: {
           com.google.protobuf.CodedInputStream is = com.google.protobuf.CodedInputStream.newInstance(payload.getData());

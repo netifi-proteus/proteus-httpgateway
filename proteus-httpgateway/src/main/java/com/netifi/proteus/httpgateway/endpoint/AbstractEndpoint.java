@@ -13,11 +13,8 @@
  */
 package com.netifi.proteus.httpgateway.endpoint;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
+import com.google.protobuf.*;
 import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.MessageLite;
 import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.rsocket.RSocketSupplier;
 import io.netty.buffer.ByteBuf;
@@ -37,6 +34,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.netifi.proteus.httpgateway.util.ProtoUtil.EMPTY_MESSAGE;
+
 public abstract class AbstractEndpoint implements Endpoint {
   private final Descriptor request;
   private final Descriptor response;
@@ -49,6 +48,7 @@ public abstract class AbstractEndpoint implements Endpoint {
   private final String service;
   private final String method;
   private final JsonFormat.TypeRegistry typeRegistry;
+  private final boolean requestEmpty;
 
   public AbstractEndpoint(
       String service,
@@ -72,6 +72,12 @@ public abstract class AbstractEndpoint implements Endpoint {
     this.maxConcurrency = maxConcurrency;
     this.outstandingRequests = new AtomicInteger();
     this.typeRegistry = typeRegistry;
+    this.requestEmpty = EMPTY_MESSAGE.equals(request.getFullName());
+  }
+
+  @Override
+  public boolean isRequestEmpty() {
+    return requestEmpty;
   }
 
   String parseResponseToJson(ByteBuf byteBuf) {
@@ -94,10 +100,14 @@ public abstract class AbstractEndpoint implements Endpoint {
     try {
       RSocket rSocket = rSocketSupplier.apply(defaultGroup, headers);
 
-      DynamicMessage.Builder builder = DynamicMessage.newBuilder(request);
-      JsonFormat.parser().merge(json, builder);
-
-      DynamicMessage message = builder.build();
+      Message message;
+      if (isRequestEmpty()) {
+        message = Empty.getDefaultInstance();
+      } else {
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(request);
+        JsonFormat.parser().merge(json, builder);
+        message = builder.build();
+      }
 
       ByteBuf data = serialize(message);
       ByteBuf metadata =

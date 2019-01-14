@@ -67,13 +67,7 @@ public class HttpGatewayController implements CommandLineRunner {
         .bindNow();
   }
 
-  protected Publisher<Void> handle(HttpServerRequest request, HttpServerResponse response) {
-    
-    if (request.method() != HttpMethod.POST) {
-      response.status(HttpResponseStatus.METHOD_NOT_ALLOWED);
-      return response.send();
-    }
-    
+  private Publisher<Void> handle(HttpServerRequest request, HttpServerResponse response) {
     String uri = HttpUtil.stripTrailingSlash(request.uri());
 
     Endpoint endpoint = registry.lookup(uri);
@@ -81,26 +75,48 @@ public class HttpGatewayController implements CommandLineRunner {
     if (endpoint == null) {
       logger.error("no endpoint found for uri {}", uri);
       return response.sendNotFound();
+    } else if (request.method() == HttpMethod.POST) {
+      return handlePost(uri, endpoint, request, response);
+    } else if (request.method() == HttpMethod.GET && endpoint.isRequestEmpty()) {
+      return handleGet(uri, endpoint, request, response);
     } else {
-      HttpHeaders headers = request.requestHeaders();
-      if (!isContentTypeJson(headers)) {
-        logger.error("request to endpoint for uri {} didn't contain json", uri);
-        response.status(HttpResponseStatus.BAD_REQUEST);
-        return response.send();
-      }
-      return request
-          .receiveContent()
-          .flatMap(
-              content -> {
-                ByteBuf bytes = content.content();
-                if (!bytes.isReadable()) {
-                  logger.error("request to uri {} was empty", uri);
-                }
-                String json = bytes.toString(CHARSET);
-
-                return endpoint.apply(headers, json, response);
-              });
+      response.status(HttpResponseStatus.METHOD_NOT_ALLOWED);
+      return response.send();
     }
+  }
+
+  private Publisher<Void> handlePost(
+      String uri, Endpoint endpoint, HttpServerRequest request, HttpServerResponse response) {
+    HttpHeaders headers = request.requestHeaders();
+    if (!isContentTypeJson(headers)) {
+      logger.error("request to endpoint for uri {} didn't contain json", uri);
+      response.status(HttpResponseStatus.BAD_REQUEST);
+      return response.send();
+    }
+    return request
+        .receiveContent()
+        .flatMap(
+            content -> {
+              ByteBuf bytes = content.content();
+              if (!bytes.isReadable()) {
+                logger.error("request to uri {} was empty", uri);
+              }
+              String json = bytes.toString(CHARSET);
+
+              return endpoint.apply(headers, json, response);
+            });
+  }
+
+  private Publisher<Void> handleGet(
+      String uri, Endpoint endpoint, HttpServerRequest request, HttpServerResponse response) {
+    HttpHeaders headers = request.requestHeaders();
+    if (!isContentTypeJson(headers)) {
+      logger.error("request to endpoint for uri {} didn't contain json", uri);
+      response.status(HttpResponseStatus.BAD_REQUEST);
+      return response.send();
+    }
+    
+    return endpoint.apply(headers, null, response);
   }
 
   protected boolean isContentTypeJson(HttpHeaders headers) {

@@ -40,6 +40,17 @@ public final class BlockingHelloWorldServiceClient implements BlockingHelloWorld
   }
 
   @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public com.netifi.proteus.demo.helloworld.HelloResponse getHello(com.google.protobuf.Empty message) {
+    return getHello(message, io.netty.buffer.Unpooled.EMPTY_BUFFER);
+  }
+
+  @java.lang.Override
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public com.netifi.proteus.demo.helloworld.HelloResponse getHello(com.google.protobuf.Empty message, io.netty.buffer.ByteBuf metadata) {
+    return delegate.getHello(message, metadata).block();
+  }
+
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
   public  io.rsocket.rpc.BlockingIterable<com.netifi.proteus.demo.helloworld.HelloResponse> streamResponseWithUrl(com.netifi.proteus.demo.helloworld.HelloRequest message) {
     return streamResponseWithUrl(message, io.netty.buffer.Unpooled.EMPTY_BUFFER);
   }

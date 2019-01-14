@@ -3,6 +3,7 @@ package com.netifi.proteus.httpgateway.http;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.demo.helloworld.HelloRequest;
+import com.netifi.proteus.demo.helloworld.HelloResponse;
 import com.netifi.proteus.httpgateway.endpoint.source.ProtoDescriptor;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -83,7 +84,7 @@ public class HttpGatewayControllerTest {
   }
 
   @Test
-  public void testShouldGetResponseFromEndpoint() throws Exception {
+  public void testShouldGetResponseFromEndpointUsingPost() throws Exception {
     String request =
         JsonFormat.printer()
             .print(HelloRequest.newBuilder().setName("testShouldGetResponseFromEndpoint").build());
@@ -99,9 +100,40 @@ public class HttpGatewayControllerTest {
                 HttpResponse.BodyHandlers.ofString());
 
     String body = resp.body();
-    System.out.println(body);
-
+  
+    HelloResponse.Builder builder = HelloResponse.newBuilder();
+    JsonFormat
+      .parser()
+      .merge(body, builder);
+    HelloResponse response = builder.build();
+  
     Assert.assertEquals(200, resp.statusCode());
-    Assert.assertEquals("{\"message\":\"yo - testShouldGetResponseFromEndpoint\"}", body);
+    Assert.assertEquals("yo - testShouldGetResponseFromEndpoint", response.getMessage());
+    Assert.assertEquals(1000, response.getTime());
+  }
+  
+  @Test
+  public void testShouldGetResponseFromEndpointUsingGet() throws Exception {
+    HttpResponse<String> resp =
+      HttpClient.newHttpClient()
+        .send(
+          HttpRequest.newBuilder(
+            URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/get"))
+            .GET()
+            .header("Content-Type", "application/json")
+            .build(),
+          HttpResponse.BodyHandlers.ofString());
+    
+    String body = resp.body();
+    
+    HelloResponse.Builder builder = HelloResponse.newBuilder();
+    JsonFormat
+      .parser()
+      .merge(body, builder);
+    HelloResponse response = builder.build();
+    
+    Assert.assertEquals(200, resp.statusCode());
+    Assert.assertEquals("yo", response.getMessage());
+    Assert.assertEquals(1000, response.getTime());
   }
 }

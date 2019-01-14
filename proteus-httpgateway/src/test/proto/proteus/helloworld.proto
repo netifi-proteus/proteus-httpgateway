@@ -18,8 +18,12 @@ service HelloWorldService {
   rpc SayHello (HelloRequest) returns (HelloResponse) {}
 
   rpc SayHelloWithUrl (HelloRequest) returns (HelloResponse) {
-        option (proteus_gateway.method).url = "/say";
-    }
+    option (proteus_gateway.method).url = "/say";
+   }
+
+  rpc GetHello (google.protobuf.Empty) returns (HelloResponse) {
+    option (proteus_gateway.method).url = "/get";
+   }
 
   rpc StreamResponseWithUrl (HelloRequest) returns (stream HelloResponse) {
    option (proteus_gateway.method).url = "/say";

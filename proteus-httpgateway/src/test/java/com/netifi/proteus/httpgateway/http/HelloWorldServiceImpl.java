@@ -1,5 +1,6 @@
 package com.netifi.proteus.httpgateway.http;
 
+import com.google.protobuf.Empty;
 import com.netifi.proteus.demo.helloworld.HelloRequest;
 import com.netifi.proteus.demo.helloworld.HelloResponse;
 import com.netifi.proteus.demo.helloworld.HelloWorldService;
@@ -14,10 +15,13 @@ class HelloWorldServiceImpl implements HelloWorldService {
   @Override
   public Mono<HelloResponse> sayHello(HelloRequest message, ByteBuf metadata) {
     return Mono.just(
-        HelloResponse.newBuilder()
-            .setMessage("yo - " + message.getName())
-            .setTime(System.currentTimeMillis())
-            .build());
+        HelloResponse.newBuilder().setMessage("yo - " + message.getName()).setTime(1000).build());
+  }
+
+  @Override
+  public Mono<HelloResponse> getHello(Empty message, ByteBuf metadata) {
+    return Mono.just(
+        HelloResponse.newBuilder().setMessage("yo").setTime(1000).build());
   }
 
   @Override

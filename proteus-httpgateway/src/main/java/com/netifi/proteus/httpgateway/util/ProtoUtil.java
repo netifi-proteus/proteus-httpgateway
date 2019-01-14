@@ -35,6 +35,8 @@ public final class ProtoUtil {
   public static final int RSOCKET_RPC_OPTIONS = 1057;
   public static final int RSOCKET_RPC_OPTIONS__FIRE_AND_FORGET = 1;
 
+  public static final String EMPTY_MESSAGE = "google.protobuf.Empty";
+
   private ProtoUtil() {}
 
   public static String fieldToString(UnknownFieldSet.Field field, int number) {

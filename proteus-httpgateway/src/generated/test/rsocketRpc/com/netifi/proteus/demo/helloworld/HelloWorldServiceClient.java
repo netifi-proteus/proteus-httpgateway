@@ -10,6 +10,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
   private final io.rsocket.RSocket rSocket;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>> sayHello;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>> sayHelloWithUrl;
+  private final java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>> getHello;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>> streamResponseWithUrl;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>> channelWithUrl;
   private final java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>> sayHelloWithTimeout;
@@ -17,6 +18,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
   private final java.util.function.Function<? super org.reactivestreams.Publisher<Void>, ? extends org.reactivestreams.Publisher<Void>> sayHelloToEmptyRoom;
   private final java.util.function.Function<java.util.Map<String, String>, java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>>> sayHelloTrace;
   private final java.util.function.Function<java.util.Map<String, String>, java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>>> sayHelloWithUrlTrace;
+  private final java.util.function.Function<java.util.Map<String, String>, java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>>> getHelloTrace;
   private final java.util.function.Function<java.util.Map<String, String>, java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>>> streamResponseWithUrlTrace;
   private final java.util.function.Function<java.util.Map<String, String>, java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>>> channelWithUrlTrace;
   private final java.util.function.Function<java.util.Map<String, String>, java.util.function.Function<? super org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>, ? extends org.reactivestreams.Publisher<com.netifi.proteus.demo.helloworld.HelloResponse>>> sayHelloWithTimeoutTrace;
@@ -27,6 +29,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.rSocket = rSocket;
     this.sayHello = java.util.function.Function.identity();
     this.sayHelloWithUrl = java.util.function.Function.identity();
+    this.getHello = java.util.function.Function.identity();
     this.streamResponseWithUrl = java.util.function.Function.identity();
     this.channelWithUrl = java.util.function.Function.identity();
     this.sayHelloWithTimeout = java.util.function.Function.identity();
@@ -34,6 +37,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.sayHelloToEmptyRoom = java.util.function.Function.identity();
     this.sayHelloTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.sayHelloWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace();
+    this.getHelloTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.streamResponseWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.channelWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.sayHelloWithTimeoutTrace = io.rsocket.rpc.tracing.Tracing.trace();
@@ -45,6 +49,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.rSocket = rSocket;
     this.sayHello = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO);
     this.sayHelloWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO_WITH_URL);
+    this.getHello = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_GET_HELLO);
     this.streamResponseWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_STREAM_RESPONSE_WITH_URL);
     this.channelWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_CHANNEL_WITH_URL);
     this.sayHelloWithTimeout = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO_WITH_TIMEOUT);
@@ -52,6 +57,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.sayHelloToEmptyRoom = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO_TO_EMPTY_ROOM);
     this.sayHelloTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.sayHelloWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace();
+    this.getHelloTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.streamResponseWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.channelWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace();
     this.sayHelloWithTimeoutTrace = io.rsocket.rpc.tracing.Tracing.trace();
@@ -64,6 +70,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.rSocket = rSocket;
     this.sayHello = java.util.function.Function.identity();
     this.sayHelloWithUrl = java.util.function.Function.identity();
+    this.getHello = java.util.function.Function.identity();
     this.streamResponseWithUrl = java.util.function.Function.identity();
     this.channelWithUrl = java.util.function.Function.identity();
     this.sayHelloWithTimeout = java.util.function.Function.identity();
@@ -71,6 +78,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.sayHelloToEmptyRoom = java.util.function.Function.identity();
     this.sayHelloTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_SAY_HELLO, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.sayHelloWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_SAY_HELLO_WITH_URL, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
+    this.getHelloTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_GET_HELLO, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.streamResponseWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_STREAM_RESPONSE_WITH_URL, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.channelWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_CHANNEL_WITH_URL, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.sayHelloWithTimeoutTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_SAY_HELLO_WITH_TIMEOUT, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
@@ -83,6 +91,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.rSocket = rSocket;
     this.sayHello = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO);
     this.sayHelloWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO_WITH_URL);
+    this.getHello = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_GET_HELLO);
     this.streamResponseWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_STREAM_RESPONSE_WITH_URL);
     this.channelWithUrl = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_CHANNEL_WITH_URL);
     this.sayHelloWithTimeout = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO_WITH_TIMEOUT);
@@ -90,6 +99,7 @@ public final class HelloWorldServiceClient implements HelloWorldService {
     this.sayHelloToEmptyRoom = io.rsocket.rpc.metrics.Metrics.timed(registry, "rsocket.client", "service", HelloWorldService.SERVICE, "method", HelloWorldService.METHOD_SAY_HELLO_TO_EMPTY_ROOM);
     this.sayHelloTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_SAY_HELLO, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.sayHelloWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_SAY_HELLO_WITH_URL, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
+    this.getHelloTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_GET_HELLO, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.streamResponseWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_STREAM_RESPONSE_WITH_URL, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.channelWithUrlTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_CHANNEL_WITH_URL, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
     this.sayHelloWithTimeoutTrace = io.rsocket.rpc.tracing.Tracing.trace(tracer, HelloWorldService.METHOD_SAY_HELLO_WITH_TIMEOUT, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "client"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
@@ -139,6 +149,28 @@ public final class HelloWorldServiceClient implements HelloWorldService {
         return rSocket.requestResponse(io.rsocket.util.ByteBufPayload.create(data, metadataBuf));
       }
     }).map(deserializer(com.netifi.proteus.demo.helloworld.HelloResponse.parser())).transform(sayHelloWithUrl).transform(sayHelloWithUrlTrace.apply(map));
+  }
+
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public reactor.core.publisher.Mono<com.netifi.proteus.demo.helloworld.HelloResponse> getHello(com.google.protobuf.Empty message) {
+    return getHello(message, io.netty.buffer.Unpooled.EMPTY_BUFFER);
+  }
+
+  @java.lang.Override
+  @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)
+  public reactor.core.publisher.Mono<com.netifi.proteus.demo.helloworld.HelloResponse> getHello(com.google.protobuf.Empty message, io.netty.buffer.ByteBuf metadata) {
+  java.util.Map<String, String> map = new java.util.HashMap<>();
+    return reactor.core.publisher.Mono.defer(new java.util.function.Supplier<reactor.core.publisher.Mono<io.rsocket.Payload>>() {
+      @java.lang.Override
+      public reactor.core.publisher.Mono<io.rsocket.Payload> get() {
+        final io.netty.buffer.ByteBuf data = serialize(message);
+        final io.netty.buffer.ByteBuf tracing = io.rsocket.rpc.tracing.Tracing.mapToByteBuf(io.netty.buffer.ByteBufAllocator.DEFAULT, map);
+        final io.netty.buffer.ByteBuf metadataBuf = io.rsocket.rpc.frames.Metadata.encode(io.netty.buffer.ByteBufAllocator.DEFAULT, HelloWorldService.SERVICE, HelloWorldService.METHOD_GET_HELLO, tracing, metadata);
+        tracing.release();
+        metadata.release();
+        return rSocket.requestResponse(io.rsocket.util.ByteBufPayload.create(data, metadataBuf));
+      }
+    }).map(deserializer(com.netifi.proteus.demo.helloworld.HelloResponse.parser())).transform(getHello).transform(getHelloTrace.apply(map));
   }
 
   @io.rsocket.rpc.annotations.internal.GeneratedMethod(returnTypeClass = com.netifi.proteus.demo.helloworld.HelloResponse.class)

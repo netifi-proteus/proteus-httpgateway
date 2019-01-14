@@ -13,7 +13,10 @@
  */
 package com.netifi.proteus.httpgateway.endpoint.factory;
 
-import com.google.protobuf.*;
+import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.Empty;
+import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.endpoint.Endpoint;
 import com.netifi.proteus.httpgateway.endpoint.FireAndForgetEndpoint;
@@ -26,12 +29,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.netifi.proteus.httpgateway.util.HttpUtil.addTrailingSlash;
@@ -87,25 +90,45 @@ public class DefaultEndpointFactory implements EndpointFactory {
     }
   }
 
-  protected Mono<Map<String, DescriptorProtos.DescriptorProto>> generateDescriptorProtosDictionary(
+  protected Map<String, Descriptors.Descriptor> generateDescriptorProtosDictionary(
       DescriptorProtos.FileDescriptorSet set) {
-    return Flux.fromIterable(set.getFileList())
-        .flatMap(
-            proto -> {
-              String _package = "." + proto.getPackage();
-              return Flux.fromIterable(proto.getMessageTypeList())
-                  .collectMap(
-                      descriptorProto -> {
-                        String s = _package + "." + descriptorProto.getName();
-                        logger.info("adding message named {} to the message dictionary", s);
-                        return s;
-                      });
-            })
-        .reduce(
-            (m1, m2) -> {
-              m1.putAll(m2);
-              return m1;
-            });
+    try {
+      Objects.requireNonNull(set);
+
+      List<DescriptorProtos.FileDescriptorProto> fileList = set.getFileList();
+      if (fileList.isEmpty()) {
+        throw new IllegalStateException("no files were found in description set");
+      }
+
+      ArrayList<Descriptors.FileDescriptor> fileDescriptorArrayList = new ArrayList<>();
+      for (DescriptorProtos.FileDescriptorProto proto : set.getFileList()) {
+        Descriptors.FileDescriptor fileDescriptor =
+            Descriptors.FileDescriptor.buildFrom(
+                proto, fileDescriptorArrayList.toArray(new Descriptors.FileDescriptor[0]), true);
+        fileDescriptorArrayList.add(fileDescriptor);
+      }
+
+      Descriptors.FileDescriptor[] fileDescriptors =
+          fileDescriptorArrayList.toArray(
+              new Descriptors.FileDescriptor[fileDescriptorArrayList.size()]);
+
+      Map<String, Descriptors.Descriptor> maps = new HashMap<>();
+      for (DescriptorProtos.FileDescriptorProto proto : set.getFileList()) {
+        Descriptors.FileDescriptor fileDescriptor =
+            Descriptors.FileDescriptor.buildFrom(
+                proto, fileDescriptorArrayList.toArray(new Descriptors.FileDescriptor[0]), true);
+
+        for (Descriptors.Descriptor descriptor : fileDescriptor.getMessageTypes()) {
+          String s = "." + descriptor.getFullName();
+          logger.info("adding message named {} to the message dictionary", s);
+          maps.put(s, descriptor);
+        }
+      }
+
+      return maps;
+    } catch (Exception e) {
+      throw Exceptions.propagate(e);
+    }
   }
 
   Flux<EndpointEvent> deleteEvent(ProtoDescriptor protoDescriptor) {
@@ -149,45 +172,40 @@ public class DefaultEndpointFactory implements EndpointFactory {
   }
 
   private JsonFormat.TypeRegistry generateTypeRegistry(
-      Map<String, DescriptorProtos.DescriptorProto> dictionary) {
+      Map<String, Descriptors.Descriptor> dictionary) {
     JsonFormat.TypeRegistry.Builder builder = JsonFormat.TypeRegistry.newBuilder();
-    for (DescriptorProtos.DescriptorProto p : dictionary.values()) {
-      builder.add(p.getDescriptorForType());
+    for (Descriptors.Descriptor p : dictionary.values()) {
+      builder.add(p);
     }
 
     return builder.build();
   }
 
   Flux<EndpointEvent> mutatingEvent(EndpointEvent.Type type, ProtoDescriptor protoDescriptor) {
-
-    DescriptorProtos.FileDescriptorSet set;
     try {
-      set = DescriptorProtos.FileDescriptorSet.parseFrom(protoDescriptor.getDescriptorBytes());
-    } catch (InvalidProtocolBufferException e) {
-      return Flux.error(e);
+      DescriptorProtos.FileDescriptorSet set =
+          DescriptorProtos.FileDescriptorSet.parseFrom(protoDescriptor.getDescriptorBytes());
+      Map<String, Descriptors.Descriptor> dictionary = generateDescriptorProtosDictionary(set);
+      JsonFormat.TypeRegistry registry = generateTypeRegistry(dictionary);
+
+      return Flux.fromIterable(set.getFileList())
+          .flatMap(
+              proto -> {
+                UnknownFieldSet.Field field =
+                    proto.getOptions().getUnknownFields().getField(PROTEUS_FILE_OPTIONS);
+
+                if (isFieldPresent(field, PROTEUS_FILE_OPTIONS__GROUP)) {
+                  String _package = proto.getPackage();
+                  String group = fieldToString(field, PROTEUS_FILE_OPTIONS__GROUP);
+                  return processServices(
+                      _package, type, group, proto.getServiceList(), dictionary, registry);
+                } else {
+                  return Flux.empty();
+                }
+              });
+    } catch (Throwable t) {
+      return Flux.error(t);
     }
-
-    return generateDescriptorProtosDictionary(set)
-        .flatMapMany(
-            dictionary -> {
-              JsonFormat.TypeRegistry registry = generateTypeRegistry(dictionary);
-
-              return Flux.fromIterable(set.getFileList())
-                  .flatMap(
-                      proto -> {
-                        UnknownFieldSet.Field field =
-                            proto.getOptions().getUnknownFields().getField(PROTEUS_FILE_OPTIONS);
-
-                        if (isFieldPresent(field, PROTEUS_FILE_OPTIONS__GROUP)) {
-                          String _package = proto.getPackage();
-                          String group = fieldToString(field, PROTEUS_FILE_OPTIONS__GROUP);
-                          return processServices(
-                              _package, type, group, proto.getServiceList(), dictionary, registry);
-                        } else {
-                          return Flux.empty();
-                        }
-                      });
-            });
   }
 
   Flux<EndpointEvent> processServices(
@@ -195,7 +213,7 @@ public class DefaultEndpointFactory implements EndpointFactory {
       EndpointEvent.Type type,
       String group,
       List<DescriptorProtos.ServiceDescriptorProto> serviceList,
-      Map<String, DescriptorProtos.DescriptorProto> dictionary,
+      Map<String, Descriptors.Descriptor> dictionary,
       JsonFormat.TypeRegistry registry) {
     return Flux.fromIterable(serviceList)
         .flatMap(
@@ -254,7 +272,7 @@ public class DefaultEndpointFactory implements EndpointFactory {
       final long globalTimoutMillis,
       final int globalMaxCurrency,
       List<DescriptorProtos.MethodDescriptorProto> methodList,
-      Map<String, DescriptorProtos.DescriptorProto> dictionary,
+      Map<String, Descriptors.Descriptor> dictionary,
       JsonFormat.TypeRegistry registry) {
     return Flux.fromIterable(methodList)
         .flatMap(
@@ -290,10 +308,8 @@ public class DefaultEndpointFactory implements EndpointFactory {
                 field = proto.getOptions().getUnknownFields().getField(RSOCKET_RPC_OPTIONS);
 
                 Endpoint endpoint;
-                Descriptors.Descriptor request =
-                    dictionary.get(proto.getInputType()).getDescriptorForType();
-                Descriptors.Descriptor response =
-                    dictionary.get(proto.getOutputType()).getDescriptorForType();
+                Descriptors.Descriptor request = dictionary.get(proto.getInputType());
+                Descriptors.Descriptor response = dictionary.get(proto.getOutputType());
                 boolean hasTimeout = timeoutMillis > 0;
                 Duration timeout =
                     timeoutMillis > 0
