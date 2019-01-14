@@ -7,10 +7,7 @@ import com.netifi.proteus.demo.helloworld.HelloResponse;
 import com.netifi.proteus.httpgateway.endpoint.source.ProtoDescriptor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.File;
 import java.net.URI;
@@ -20,6 +17,7 @@ import java.net.http.HttpResponse;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 
+@Ignore
 public class HttpGatewayControllerTest {
   @ClassRule public static HttpGatewayControllerRule rule = new HttpGatewayControllerRule();
 

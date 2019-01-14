@@ -7,16 +7,16 @@ import io.netty.buffer.Unpooled;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 import reactor.core.Exceptions;
 import reactor.test.StepVerifier;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.time.Duration;
 
+@Ignore
 public class FileSystemEndpointSourceTest {
   @Test
   public void testPathToByteString() throws Exception {
@@ -29,10 +29,9 @@ public class FileSystemEndpointSourceTest {
 
     FileUtils.copyFile(file, tempFile);
 
-    FileSystemEndpointSource mock = Mockito.mock(FileSystemEndpointSource.class);
-    Mockito.when(mock.pathToByteString(Mockito.any(Path.class))).thenCallRealMethod();
+    FileSystemEndpointSource source = new FileSystemEndpointSource(tempDir.getAbsolutePath());
 
-    ByteString bytes = mock.pathToByteString(tempFile.toPath());
+    ByteString bytes = source.pathToByteString(tempFile.toPath());
     byte[] fromByteString = bytes.toByteArray();
 
     InputStream stream =

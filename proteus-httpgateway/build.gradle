@@ -28,13 +28,13 @@ dependencyManagement {
 }
 
 dependencies {
+    compile project(':proteus-httpgateway-idl')
 
     compile 'org.springframework.boot:spring-boot-starter'
     
     compile "io.netifi.proteus:proteus-metrics-micrometer:$proteusVersion"
 
     compile "com.google.protobuf:protobuf-java:$protobufVersion"
-    compile "com.google.protobuf:protobuf-java:${protobufVersion}"
     compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
 
     compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
@@ -47,8 +47,7 @@ dependencies {
 
     protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:$rsocketRpcVersion"
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-all:1.10.19'
+    testCompile 'org.junit.vintage:junit-vintage-engine:5.3.2'
     testCompile 'commons-io:commons-io:2.6'
     testCompile 'io.projectreactor:reactor-test:3.2.1.RELEASE'
 
@@ -120,16 +119,20 @@ clean {
 
 idea {
     module {
-        sourceDirs += file("src/main/proto")
-        sourceDirs += file("src/generated/main/java")
-        sourceDirs += file("src/generated/main/rsocketRpc")
+        sourceDirs += file("src/test/proto")
+        sourceDirs += file("src/generated/test/java")
+        sourceDirs += file("src/generated/test/rsocketRpc")
 
-        generatedSourceDirs += file('src/generated/main/java')
-        generatedSourceDirs += file('src/generated/main/rsocketRpc')
+        generatedSourceDirs += file('src/generated/test/java')
+        generatedSourceDirs += file('src/generated/test/rsocketRpc')
 
     }
 }
 
+test {
+    exclude 'com/netifi/proteus/demo/**'
+}
+
 clean {
-    delete 'src/generated/main'
+    delete 'src/generated/'
 }

@@ -41,7 +41,7 @@ public class ProtoUtilTest {
         .getField(PROTEUS_METHOD_OPTIONS);
   
     String s = fieldToString(field, PROTEUS_METHOD_OPTIONS__URL);
-    Assert.assertEquals("/timeout", s);
+    Assert.assertEquals("/max", s);
   }
   
   @Test

@@ -1,3 +1,5 @@
 rootProject.name = 'proteus-httpgateway'
 
 include 'proteus-httpgateway'
+include 'proteus-httpgateway-idl'
+
