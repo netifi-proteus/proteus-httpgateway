@@ -41,12 +41,12 @@ class HelloWorldServiceImpl implements HelloWorldService {
 
   @Override
   public Mono<HelloResponse> sayHelloWithTimeout(HelloRequest message, ByteBuf metadata) {
-    return Mono.delay(Duration.ofSeconds(3)).then(sayHello(message, metadata));
+    return Mono.delay(Duration.ofSeconds(10)).then(sayHello(message, metadata));
   }
 
   @Override
   public Mono<HelloResponse> sayHelloWithMaxConcurrent(HelloRequest message, ByteBuf metadata) {
-    return Mono.delay(Duration.ofSeconds(1)).then(sayHello(message, metadata));
+    return Mono.delay(Duration.ofSeconds(10)).then(sayHello(message, metadata));
   }
 
   @Override

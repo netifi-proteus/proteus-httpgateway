@@ -39,7 +39,7 @@ service HelloWorldService {
   }
 
   rpc SayHelloWithMaxConcurrent (HelloRequest) returns (HelloResponse) {
-    option (proteus_gateway.method).url = "/timeout";
+    option (proteus_gateway.method).url = "/max";
     option (proteus_gateway.method).timeout_millis = 2000;
     option (proteus_gateway.method).max_concurrency = 10;
   }

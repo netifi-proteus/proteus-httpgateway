@@ -21,6 +21,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.rpc.frames.Metadata;
@@ -32,11 +33,12 @@ import reactor.netty.http.server.HttpServerResponse;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.netifi.proteus.httpgateway.util.ProtoUtil.EMPTY_MESSAGE;
 
-public abstract class AbstractEndpoint implements Endpoint {
+public abstract class AbstractEndpoint<T> implements Endpoint {
   private final Descriptor request;
   private final Descriptor response;
   private final String defaultGroup;
@@ -114,7 +116,19 @@ public abstract class AbstractEndpoint implements Endpoint {
           Metadata.encode(ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
       Payload request = ByteBufPayload.create(data, metadata);
 
-      return applyTimeout(doApply(rSocket, request, response)).doFinally(s -> endReqeust());
+      return applyTimeout(doApply(rSocket, request))
+          .flatMap(t -> doHandleResponse(t, response))
+          .onErrorResume(
+              throwable -> {
+                if (throwable instanceof TimeoutException) {
+                  response.status(HttpResponseStatus.GATEWAY_TIMEOUT);
+                } else {
+                  response.status(HttpResponseStatus.GATEWAY_TIMEOUT);
+                }
+
+                return response.send();
+              })
+          .doFinally(s -> endReqeust());
     } catch (Throwable t) {
       endReqeust();
       return Flux.error(t);
@@ -134,8 +148,8 @@ public abstract class AbstractEndpoint implements Endpoint {
     }
   }
 
-  private Flux<Void> applyTimeout(Publisher<Void> target) {
-    Flux<Void> from = Flux.from(target);
+  private Flux<T> applyTimeout(Publisher<T> target) {
+    Flux<T> from = Flux.from(target);
     if (hasTimeout) {
       from = from.timeout(timeout);
     }
@@ -159,6 +173,7 @@ public abstract class AbstractEndpoint implements Endpoint {
     outstandingRequests.decrementAndGet();
   }
 
-  protected abstract Publisher<Void> doApply(
-      RSocket rSocket, Payload request, HttpServerResponse response);
+  abstract Publisher<T> doApply(RSocket rSocket, Payload request);
+
+  abstract Publisher<Void> doHandleResponse(T source, HttpServerResponse response);
 }

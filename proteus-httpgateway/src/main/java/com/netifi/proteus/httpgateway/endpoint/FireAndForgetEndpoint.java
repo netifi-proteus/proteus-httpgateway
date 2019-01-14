@@ -23,8 +23,18 @@ import reactor.netty.http.server.HttpServerResponse;
 
 import java.time.Duration;
 
-public class FireAndForgetEndpoint extends AbstractEndpoint {
-  public FireAndForgetEndpoint(String service, String method, Descriptors.Descriptor request, Descriptors.Descriptor response, String defaultGroup, RSocketSupplier rSocketSupplier, boolean hasTimeout, Duration timeout, int maxConcurrency, JsonFormat.TypeRegistry typeRegistry) {
+public class FireAndForgetEndpoint extends AbstractEndpoint<Void> {
+  public FireAndForgetEndpoint(
+      String service,
+      String method,
+      Descriptors.Descriptor request,
+      Descriptors.Descriptor response,
+      String defaultGroup,
+      RSocketSupplier rSocketSupplier,
+      boolean hasTimeout,
+      Duration timeout,
+      int maxConcurrency,
+      JsonFormat.TypeRegistry typeRegistry) {
     super(
         service,
         method,
@@ -37,9 +47,14 @@ public class FireAndForgetEndpoint extends AbstractEndpoint {
         maxConcurrency,
         typeRegistry);
   }
-  
+
   @Override
-  protected Publisher<Void> doApply(RSocket rSocket, Payload request, HttpServerResponse response) {
-    return rSocket.fireAndForget(request).then(response.send());
+  Publisher<Void> doApply(RSocket rSocket, Payload request) {
+    return rSocket.fireAndForget(request);
+  }
+
+  @Override
+  Publisher<Void> doHandleResponse(Void source, HttpServerResponse response) {
+    return response.send();
   }
 }

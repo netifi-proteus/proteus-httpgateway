@@ -20,12 +20,13 @@ import io.netty.buffer.ByteBuf;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerResponse;
 
 import java.time.Duration;
 
-public class RequestResponseEndpoint extends AbstractEndpoint {
+public class RequestResponseEndpoint extends AbstractEndpoint<Payload> {
   public RequestResponseEndpoint(
       String service,
       String method,
@@ -51,20 +52,20 @@ public class RequestResponseEndpoint extends AbstractEndpoint {
   }
 
   @Override
-  protected Publisher<Void> doApply(RSocket rSocket, Payload request, HttpServerResponse response) {
-    Mono<String> json =
-        rSocket
-            .requestResponse(request)
-            .map(
-                payload -> {
-                  try {
-                    ByteBuf byteBuf = payload.sliceData();
-                    return parseResponseToJson(byteBuf);
-                  } finally {
-                    payload.release();
-                  }
-                });
+  protected Publisher<Payload> doApply(RSocket rSocket, Payload request) {
+    return rSocket.requestResponse(request);
+  }
 
-    return response.sendString(json);
+  @Override
+  Publisher<Void> doHandleResponse(Payload source, HttpServerResponse response) {
+    try {
+      ByteBuf byteBuf = source.sliceData();
+      String json = parseResponseToJson(byteBuf);
+      return response.sendString(Mono.just(json));
+    } catch (Throwable t) {
+      return Flux.error(t);
+    } finally {
+      source.release();
+    }
   }
 }

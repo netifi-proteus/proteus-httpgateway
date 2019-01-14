@@ -113,6 +113,25 @@ public class HttpGatewayControllerTest {
   }
   
   @Test
+  public void testShouldShouldTimeout() throws Exception {
+    String request =
+      JsonFormat.printer()
+        .print(HelloRequest.newBuilder().setName("testShouldGetResponseFromEndpoint").build());
+    
+    HttpResponse<String> resp =
+      HttpClient.newHttpClient()
+        .send(
+          HttpRequest.newBuilder(
+            URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/timeout"))
+            .POST(HttpRequest.BodyPublishers.ofString(request))
+            .header("Content-Type", "application/json")
+            .build(),
+          HttpResponse.BodyHandlers.ofString());
+    
+    Assert.assertEquals(504, resp.statusCode());
+  }
+  
+  @Test
   public void testShouldGetResponseFromEndpointUsingGet() throws Exception {
     HttpResponse<String> resp =
       HttpClient.newHttpClient()
