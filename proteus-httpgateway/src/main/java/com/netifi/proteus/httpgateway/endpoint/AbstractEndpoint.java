@@ -22,9 +22,11 @@ import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.rsocket.RSocketSupplier;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
+import io.rsocket.rpc.frames.Metadata;
 import io.rsocket.util.ByteBufPayload;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,23 +38,9 @@ import reactor.netty.http.server.HttpServerResponse;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 public abstract class AbstractEndpoint implements Endpoint {
   private static final Logger logger = LogManager.getLogger(AbstractEndpoint.class);
-  private static final Function<MessageLite, Payload> serializer =
-      (message) -> {
-        int length = message.getSerializedSize();
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(length);
-        try {
-          message.writeTo(CodedOutputStream.newInstance(byteBuf.internalNioBuffer(0, length)));
-          byteBuf.writerIndex(length);
-          return ByteBufPayload.create(byteBuf);
-        } catch (Throwable t) {
-          byteBuf.release();
-          throw new RuntimeException(t);
-        }
-      };
 
   private final Descriptor request;
   private final Descriptor response;
@@ -62,8 +50,12 @@ public abstract class AbstractEndpoint implements Endpoint {
   private final Duration timeout;
   private final int maxConcurrency;
   private final AtomicInteger outstandingRequests;
+  private final String service;
+  private final String method;
 
   public AbstractEndpoint(
+      String service,
+      String method,
       Descriptor request,
       Descriptor response,
       String defaultGroup,
@@ -71,6 +63,8 @@ public abstract class AbstractEndpoint implements Endpoint {
       boolean hasTimeout,
       Duration timeout,
       int maxConcurrency) {
+    this.service = service;
+    this.method = method;
     this.request = request;
     this.response = response;
     this.defaultGroup = defaultGroup;
@@ -125,12 +119,28 @@ public abstract class AbstractEndpoint implements Endpoint {
 
       DynamicMessage message = builder.build();
 
-      Payload request = serializer.apply(message);
+      ByteBuf data = serialize(message);
+      ByteBuf metadata =
+          Metadata.encode(ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
+      Payload request = ByteBufPayload.create(data, metadata);
 
       return applyTimeout(doApply(rSocket, request, response)).doFinally(s -> endReqeust());
     } catch (Throwable t) {
       endReqeust();
       return Flux.error(t);
+    }
+  }
+
+  private ByteBuf serialize(MessageLite message) {
+    int length = message.getSerializedSize();
+    ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(length);
+    try {
+      message.writeTo(CodedOutputStream.newInstance(byteBuf.internalNioBuffer(0, length)));
+      byteBuf.writerIndex(length);
+      return byteBuf;
+    } catch (Throwable t) {
+      byteBuf.release();
+      throw Exceptions.propagate(t);
     }
   }
 

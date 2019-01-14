@@ -44,7 +44,7 @@ public class DefaultEndpointRegistry implements EndpointRegistry {
         .subscribe(this::handleEndpointEvent);
   }
 
-  protected void handleEndpointEvent(EndpointEvent event) {
+  protected synchronized void handleEndpointEvent(EndpointEvent event) {
     logger.info("registry process event type {}", event.toString());
     String uri = event.getUrl();
     EndpointEvent.Type type = event.getType();
@@ -54,12 +54,15 @@ public class DefaultEndpointRegistry implements EndpointRegistry {
           logger.warn("registry already contains endpoint with uri {} - skipping", uri);
           return;
         }
+        endpoints.put(uri, event.getEndpoint());
       case REPLACE:
         if (endpoints.containsKey(uri)) {
           logger.warn("registry already contains endpoint with uri {} - replacing", uri);
         }
         endpoints.put(uri, event.getEndpoint());
+        break;
       case DELETE:
+        logger.info("removing uri {}", uri);
         endpoints.remove(uri);
         break;
       default:

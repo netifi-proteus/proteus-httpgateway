@@ -24,6 +24,8 @@ import java.time.Duration;
 
 public class FireAndForgetEndpoint extends AbstractEndpoint {
   public FireAndForgetEndpoint(
+      String service,
+      String method,
       Descriptors.Descriptor request,
       Descriptors.Descriptor response,
       String defaultGroup,
@@ -31,7 +33,16 @@ public class FireAndForgetEndpoint extends AbstractEndpoint {
       boolean hasTimeout,
       Duration timeout,
       int maxConcurrency) {
-    super(request, response, defaultGroup, rSocketSupplier, hasTimeout, timeout, maxConcurrency);
+    super(
+        service,
+        method,
+        request,
+        response,
+        defaultGroup,
+        rSocketSupplier,
+        hasTimeout,
+        timeout,
+        maxConcurrency);
   }
 
   @Override

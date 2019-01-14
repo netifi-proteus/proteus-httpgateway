@@ -49,6 +49,8 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.10.19'
+    testCompile 'commons-io:commons-io:2.6'
+    testCompile 'io.projectreactor:reactor-test:3.2.1.RELEASE'
 
 }
 
