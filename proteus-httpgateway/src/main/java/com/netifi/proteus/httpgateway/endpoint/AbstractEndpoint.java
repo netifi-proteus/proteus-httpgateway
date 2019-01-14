@@ -29,6 +29,7 @@ import io.rsocket.util.ByteBufPayload;
 import org.reactivestreams.Publisher;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerResponse;
 
 import java.nio.ByteBuffer;
@@ -98,40 +99,48 @@ public abstract class AbstractEndpoint<T> implements Endpoint {
 
   @Override
   public Publisher<Void> apply(HttpHeaders headers, String json, HttpServerResponse response) {
-    startRequest();
     try {
-      RSocket rSocket = rSocketSupplier.apply(defaultGroup, headers);
+      return start(response)
+          .thenMany(
+              Flux.defer(
+                  () -> {
+                    try {
+                      RSocket rSocket = rSocketSupplier.apply(defaultGroup, headers);
 
-      Message message;
-      if (isRequestEmpty()) {
-        message = Empty.getDefaultInstance();
-      } else {
-        DynamicMessage.Builder builder = DynamicMessage.newBuilder(request);
-        JsonFormat.parser().merge(json, builder);
-        message = builder.build();
-      }
+                      Message message;
+                      if (isRequestEmpty()) {
+                        message = Empty.getDefaultInstance();
+                      } else {
+                        DynamicMessage.Builder builder = DynamicMessage.newBuilder(request);
+                        JsonFormat.parser().merge(json, builder);
+                        message = builder.build();
+                      }
 
-      ByteBuf data = serialize(message);
-      ByteBuf metadata =
-          Metadata.encode(ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
-      Payload request = ByteBufPayload.create(data, metadata);
+                      ByteBuf data = serialize(message);
+                      ByteBuf metadata =
+                          Metadata.encode(
+                              ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
+                      Payload request = ByteBufPayload.create(data, metadata);
 
-      return applyTimeout(doApply(rSocket, request))
-          .flatMap(t -> doHandleResponse(t, response))
-          .onErrorResume(
-              throwable -> {
-                if (throwable instanceof TimeoutException) {
-                  response.status(HttpResponseStatus.GATEWAY_TIMEOUT);
-                } else {
-                  response.status(HttpResponseStatus.GATEWAY_TIMEOUT);
-                }
+                      return applyTimeout(doApply(rSocket, request))
+                          .flatMap(t -> doHandleResponse(t, response))
+                          .onErrorResume(
+                              throwable -> {
+                                if (throwable instanceof TimeoutException) {
+                                  response.status(HttpResponseStatus.REQUEST_TIMEOUT);
+                                } else {
+                                  response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                                }
 
-                return response.send();
-              })
-          .doFinally(s -> endReqeust());
-    } catch (Throwable t) {
-      endReqeust();
-      return Flux.error(t);
+                                return response.send();
+                              })
+                          .doFinally(s -> end());
+                    } catch (Exception e) {
+                      return Flux.error(e);
+                    }
+                  }));
+    } finally {
+      end();
     }
   }
 
@@ -157,19 +166,16 @@ public abstract class AbstractEndpoint<T> implements Endpoint {
     return from;
   }
 
-  private void startRequest() {
-    outstandingRequests.updateAndGet(
-        operand -> {
-          if (operand == maxConcurrency) {
-            throw new IllegalStateException(
-                "max concurrent requests of " + maxConcurrency + " has been reached");
-          }
-
-          return operand + 1;
-        });
+  private Mono<Void> start(HttpServerResponse response) {
+    if (outstandingRequests.incrementAndGet() >= maxConcurrency) {
+      response.status(HttpResponseStatus.TOO_MANY_REQUESTS);
+      return response.send();
+    } else {
+      return Mono.empty();
+    }
   }
 
-  private void endReqeust() {
+  private void end() {
     outstandingRequests.decrementAndGet();
   }
 

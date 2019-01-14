@@ -5,6 +5,7 @@ import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.demo.helloworld.HelloRequest;
 import com.netifi.proteus.demo.helloworld.HelloResponse;
 import com.netifi.proteus.httpgateway.endpoint.source.ProtoDescriptor;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -41,7 +42,8 @@ public class HttpGatewayControllerTest {
     HttpResponse<String> resp =
         HttpClient.newHttpClient()
             .send(
-                HttpRequest.newBuilder(URI.create("http://localhost:" + rule.getBindPort()))
+                HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/say"))
                     .DELETE()
                     .build(),
                 HttpResponse.BodyHandlers.ofString());
@@ -86,35 +88,6 @@ public class HttpGatewayControllerTest {
   @Test
   public void testShouldGetResponseFromEndpointUsingPost() throws Exception {
     String request =
-        JsonFormat.printer()
-            .print(HelloRequest.newBuilder().setName("testShouldGetResponseFromEndpoint").build());
-
-    HttpResponse<String> resp =
-        HttpClient.newHttpClient()
-            .send(
-                HttpRequest.newBuilder(
-                        URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/say"))
-                    .POST(HttpRequest.BodyPublishers.ofString(request))
-                    .header("Content-Type", "application/json")
-                    .build(),
-                HttpResponse.BodyHandlers.ofString());
-
-    String body = resp.body();
-  
-    HelloResponse.Builder builder = HelloResponse.newBuilder();
-    JsonFormat
-      .parser()
-      .merge(body, builder);
-    HelloResponse response = builder.build();
-  
-    Assert.assertEquals(200, resp.statusCode());
-    Assert.assertEquals("yo - testShouldGetResponseFromEndpoint", response.getMessage());
-    Assert.assertEquals(1000, response.getTime());
-  }
-  
-  @Test
-  public void testShouldShouldTimeout() throws Exception {
-    String request =
       JsonFormat.printer()
         .print(HelloRequest.newBuilder().setName("testShouldGetResponseFromEndpoint").build());
     
@@ -122,23 +95,8 @@ public class HttpGatewayControllerTest {
       HttpClient.newHttpClient()
         .send(
           HttpRequest.newBuilder(
-            URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/timeout"))
+            URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/say"))
             .POST(HttpRequest.BodyPublishers.ofString(request))
-            .header("Content-Type", "application/json")
-            .build(),
-          HttpResponse.BodyHandlers.ofString());
-    
-    Assert.assertEquals(504, resp.statusCode());
-  }
-  
-  @Test
-  public void testShouldGetResponseFromEndpointUsingGet() throws Exception {
-    HttpResponse<String> resp =
-      HttpClient.newHttpClient()
-        .send(
-          HttpRequest.newBuilder(
-            URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/get"))
-            .GET()
             .header("Content-Type", "application/json")
             .build(),
           HttpResponse.BodyHandlers.ofString());
@@ -146,11 +104,50 @@ public class HttpGatewayControllerTest {
     String body = resp.body();
     
     HelloResponse.Builder builder = HelloResponse.newBuilder();
-    JsonFormat
-      .parser()
-      .merge(body, builder);
+    JsonFormat.parser().merge(body, builder);
     HelloResponse response = builder.build();
     
+    Assert.assertEquals(200, resp.statusCode());
+    Assert.assertEquals("yo - testShouldGetResponseFromEndpoint", response.getMessage());
+    Assert.assertEquals(1000, response.getTime());
+  }
+
+  @Test
+  public void testShouldTimeout() throws Exception {
+    String request =
+        JsonFormat.printer()
+            .print(HelloRequest.newBuilder().setName("testShouldGetResponseFromEndpoint").build());
+
+    HttpResponse<String> resp =
+        HttpClient.newHttpClient()
+            .send(
+                HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/timeout"))
+                    .POST(HttpRequest.BodyPublishers.ofString(request))
+                    .header("Content-Type", "application/json")
+                    .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+    Assert.assertEquals(HttpResponseStatus.REQUEST_TIMEOUT.code(), resp.statusCode());
+  }
+
+  @Test
+  public void testShouldGetResponseFromEndpointUsingGet() throws Exception {
+    HttpResponse<String> resp =
+        HttpClient.newHttpClient()
+            .send(
+                HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + rule.getBindPort() + "/v1/hello/get"))
+                    .GET()
+                    .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+    String body = resp.body();
+
+    HelloResponse.Builder builder = HelloResponse.newBuilder();
+    JsonFormat.parser().merge(body, builder);
+    HelloResponse response = builder.build();
+
     Assert.assertEquals(200, resp.statusCode());
     Assert.assertEquals("yo", response.getMessage());
     Assert.assertEquals(1000, response.getTime());

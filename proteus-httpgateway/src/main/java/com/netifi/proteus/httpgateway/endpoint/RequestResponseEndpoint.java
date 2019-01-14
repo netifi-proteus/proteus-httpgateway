@@ -59,6 +59,7 @@ public class RequestResponseEndpoint extends AbstractEndpoint<Payload> {
   @Override
   Publisher<Void> doHandleResponse(Payload source, HttpServerResponse response) {
     try {
+      response.header("Content-Type","application/json");
       ByteBuf byteBuf = source.sliceData();
       String json = parseResponseToJson(byteBuf);
       return response.sendString(Mono.just(json));

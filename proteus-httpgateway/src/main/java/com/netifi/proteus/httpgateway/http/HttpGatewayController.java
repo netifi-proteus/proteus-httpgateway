@@ -110,12 +110,6 @@ public class HttpGatewayController implements CommandLineRunner {
   private Publisher<Void> handleGet(
       String uri, Endpoint endpoint, HttpServerRequest request, HttpServerResponse response) {
     HttpHeaders headers = request.requestHeaders();
-    if (!isContentTypeJson(headers)) {
-      logger.error("request to endpoint for uri {} didn't contain json", uri);
-      response.status(HttpResponseStatus.BAD_REQUEST);
-      return response.send();
-    }
-    
     return endpoint.apply(headers, null, response);
   }
 
