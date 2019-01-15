@@ -19,7 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.netifi.proteus.httpgateway.util.ProtoUtil.*;
+import static com.netifi.proteus.httpgateway.util.ProtoUtil.jsonToMessage;
+import static com.netifi.proteus.httpgateway.util.ProtoUtil.messageToPayload;
 
 public class RequestChannelEndpoint implements Endpoint {
   private final Descriptors.Descriptor request;
@@ -33,7 +34,6 @@ public class RequestChannelEndpoint implements Endpoint {
   private final String service;
   private final String method;
   private final JsonFormat.TypeRegistry typeRegistry;
-  private final boolean requestEmpty;
 
   public RequestChannelEndpoint(
       String service,
@@ -57,7 +57,6 @@ public class RequestChannelEndpoint implements Endpoint {
     this.service = service;
     this.method = method;
     this.typeRegistry = typeRegistry;
-    this.requestEmpty = EMPTY_MESSAGE.equals(request.getFullName());
   }
 
   private ByteBuf payloadToString(Payload payload) {
@@ -96,7 +95,7 @@ public class RequestChannelEndpoint implements Endpoint {
 
   @Override
   public boolean isRequestEmpty() {
-    return requestEmpty;
+    return false;
   }
 
   @Override

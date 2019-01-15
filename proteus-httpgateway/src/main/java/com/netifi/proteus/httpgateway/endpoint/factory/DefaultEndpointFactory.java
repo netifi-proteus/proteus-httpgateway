@@ -325,7 +325,7 @@ public class DefaultEndpointFactory implements EndpointFactory {
                       "creating new fire and forget endpoint for method {} with url {}",
                       method,
                       url);
-                } else if (proto.getServerStreaming()) {
+                } else if (proto.getServerStreaming() && !proto.getClientStreaming()) {
                   endpoint =
                       new RequestStreamEndpoint(
                           service,
