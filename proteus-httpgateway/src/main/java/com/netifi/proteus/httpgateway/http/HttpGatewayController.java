@@ -69,12 +69,14 @@ public class HttpGatewayController implements CommandLineRunner {
 
   private Publisher<Void> handle(HttpServerRequest request, HttpServerResponse response) {
     String uri = HttpUtil.stripTrailingSlash(request.uri());
-
+    //              transportHeaders.get().forEach(response::addHeader);
     Endpoint endpoint = registry.lookup(uri);
 
     if (endpoint == null) {
       logger.error("no endpoint found for uri {}", uri);
       return response.sendNotFound();
+    } else if (endpoint.isResponseStreaming() || endpoint.isRequestStreaming()) {
+      return endpoint.apply(request.requestHeaders(), response);
     } else if (request.method() == HttpMethod.POST) {
       return handlePost(uri, endpoint, request, response);
     } else if (request.method() == HttpMethod.GET && endpoint.isRequestEmpty()) {
@@ -110,7 +112,7 @@ public class HttpGatewayController implements CommandLineRunner {
   private Publisher<Void> handleGet(
       String uri, Endpoint endpoint, HttpServerRequest request, HttpServerResponse response) {
     HttpHeaders headers = request.requestHeaders();
-    return endpoint.apply(headers, null, response);
+    return endpoint.apply(headers, response);
   }
 
   protected boolean isContentTypeJson(HttpHeaders headers) {

@@ -15,13 +15,29 @@ package com.netifi.proteus.httpgateway.endpoint;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerResponse;
 
 @FunctionalInterface
-public interface Endpoint  {
+public interface Endpoint {
   Publisher<Void> apply(HttpHeaders headers, String json, HttpServerResponse response);
-  
+
+  default Publisher<Void> apply(HttpHeaders headers, HttpServerResponse response) {
+    return apply(headers, "", response);
+  }
+
+  default Publisher<Void> apply(
+      HttpHeaders headers, Publisher<String> json, HttpServerResponse response) {
+    return Mono.error(new UnsupportedOperationException("streaming request not support"));
+  }
+
   default boolean isRequestEmpty() {
     return false;
   }
+
+  default boolean isRequestStreaming() {
+    return false;
+  }
+  
+  default boolean isResponseStreaming() { return false; }
 }

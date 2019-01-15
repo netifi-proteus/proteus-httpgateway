@@ -26,11 +26,11 @@ service HelloWorldService {
    }
 
   rpc StreamResponseWithUrl (HelloRequest) returns (stream HelloResponse) {
-   option (proteus_gateway.method).url = "/say";
+   option (proteus_gateway.method).url = "/stream";
   }
 
   rpc ChannelWithUrl (stream HelloRequest) returns (stream HelloResponse) {
-    option (proteus_gateway.method).url = "/say";
+    option (proteus_gateway.method).url = "/channel";
   }
 
   rpc SayHelloWithTimeout (HelloRequest) returns (HelloResponse) {

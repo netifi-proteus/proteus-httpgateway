@@ -38,7 +38,7 @@ public final class HelloWorldServiceProto {
       "empty.proto\032\025rsocket/options.proto\032\025prot" +
       "eus/gateway.proto\"\034\n\014HelloRequest\022\014\n\004nam" +
       "e\030\001 \001(\t\".\n\rHelloResponse\022\017\n\007message\030\001 \001(" +
-      "\t\022\014\n\004time\030\002 \001(\0032\270\010\n\021HelloWorldService\022q\n" +
+      "\t\022\014\n\004time\030\002 \001(\0032\277\010\n\021HelloWorldService\022q\n" +
       "\010SayHello\0220.com.netifi.proteus.demo.hell" +
       "oworld.HelloRequest\0321.com.netifi.proteus" +
       ".demo.helloworld.HelloResponse\"\000\022\202\001\n\017Say" +
@@ -47,27 +47,27 @@ public final class HelloWorldServiceProto {
       "eus.demo.helloworld.HelloResponse\"\n\202\265\030\006\n" +
       "\004/say\022a\n\010GetHello\022\026.google.protobuf.Empt" +
       "y\0321.com.netifi.proteus.demo.helloworld.H" +
-      "elloResponse\"\n\202\265\030\006\n\004/get\022\212\001\n\025StreamRespo" +
+      "elloResponse\"\n\202\265\030\006\n\004/get\022\215\001\n\025StreamRespo" +
       "nseWithUrl\0220.com.netifi.proteus.demo.hel" +
       "loworld.HelloRequest\0321.com.netifi.proteu" +
-      "s.demo.helloworld.HelloResponse\"\n\202\265\030\006\n\004/" +
-      "say0\001\022\205\001\n\016ChannelWithUrl\0220.com.netifi.pr" +
-      "oteus.demo.helloworld.HelloRequest\0321.com" +
-      ".netifi.proteus.demo.helloworld.HelloRes" +
-      "ponse\"\n\202\265\030\006\n\004/say(\0010\001\022\221\001\n\023SayHelloWithTi" +
-      "meout\0220.com.netifi.proteus.demo.hellowor" +
-      "ld.HelloRequest\0321.com.netifi.proteus.dem" +
-      "o.helloworld.HelloResponse\"\025\202\265\030\n\n\010/timeo" +
-      "ut\202\265\030\003\020\320\017\022\231\001\n\031SayHelloWithMaxConcurrent\022" +
-      "0.com.netifi.proteus.demo.helloworld.Hel" +
-      "loRequest\0321.com.netifi.proteus.demo.hell" +
-      "oworld.HelloResponse\"\027\202\265\030\006\n\004/max\202\265\030\003\020\320\017\202" +
-      "\265\030\002\030\n\022r\n\023SayHelloToEmptyRoom\0220.com.netif" +
-      "i.proteus.demo.helloworld.HelloRequest\032\026" +
-      ".google.protobuf.Empty\"\021\202\265\030\010\n\006/empty\212B\002\010" +
-      "\001\032\017\202\265\030\013\n\t/v1/helloBN\n\"com.netifi.proteus" +
-      ".demo.helloworldB\026HelloWorldServiceProto" +
-      "P\001\202\265\030\014\n\nhelloGroupb\006proto3"
+      "s.demo.helloworld.HelloResponse\"\r\202\265\030\t\n\007/" +
+      "stream0\001\022\211\001\n\016ChannelWithUrl\0220.com.netifi" +
+      ".proteus.demo.helloworld.HelloRequest\0321." +
+      "com.netifi.proteus.demo.helloworld.Hello" +
+      "Response\"\016\202\265\030\n\n\010/channel(\0010\001\022\221\001\n\023SayHell" +
+      "oWithTimeout\0220.com.netifi.proteus.demo.h" +
+      "elloworld.HelloRequest\0321.com.netifi.prot" +
+      "eus.demo.helloworld.HelloResponse\"\025\202\265\030\n\n" +
+      "\010/timeout\202\265\030\003\020\320\017\022\231\001\n\031SayHelloWithMaxConc" +
+      "urrent\0220.com.netifi.proteus.demo.hellowo" +
+      "rld.HelloRequest\0321.com.netifi.proteus.de" +
+      "mo.helloworld.HelloResponse\"\027\202\265\030\006\n\004/max\202" +
+      "\265\030\003\020\320\017\202\265\030\002\030\n\022r\n\023SayHelloToEmptyRoom\0220.co" +
+      "m.netifi.proteus.demo.helloworld.HelloRe" +
+      "quest\032\026.google.protobuf.Empty\"\021\202\265\030\010\n\006/em" +
+      "pty\212B\002\010\001\032\017\202\265\030\013\n\t/v1/helloBN\n\"com.netifi." +
+      "proteus.demo.helloworldB\026HelloWorldServi" +
+      "ceProtoP\001\202\265\030\014\n\nhelloGroupb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

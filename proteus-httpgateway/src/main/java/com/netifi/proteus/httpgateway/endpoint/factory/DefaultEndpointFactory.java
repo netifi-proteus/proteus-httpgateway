@@ -18,9 +18,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.Empty;
 import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.util.JsonFormat;
-import com.netifi.proteus.httpgateway.endpoint.Endpoint;
-import com.netifi.proteus.httpgateway.endpoint.FireAndForgetEndpoint;
-import com.netifi.proteus.httpgateway.endpoint.RequestResponseEndpoint;
+import com.netifi.proteus.httpgateway.endpoint.*;
 import com.netifi.proteus.httpgateway.endpoint.source.EndpointSource;
 import com.netifi.proteus.httpgateway.endpoint.source.ProtoDescriptor;
 import com.netifi.proteus.httpgateway.rsocket.RSocketSupplier;
@@ -279,13 +277,6 @@ public class DefaultEndpointFactory implements EndpointFactory {
             proto -> {
               // Don't support streaming yet - skip
               String method = proto.getName();
-              if (proto.getClientStreaming() || proto.getServerStreaming()) {
-                logger.info(
-                    "proteus gateway doesn't support stream end points yet - skipping method {}",
-                    method);
-                return Flux.empty();
-              }
-
               UnknownFieldSet.Field field =
                   proto.getOptions().getUnknownFields().getField(PROTEUS_METHOD_OPTIONS);
 
@@ -319,7 +310,7 @@ public class DefaultEndpointFactory implements EndpointFactory {
                 if (isFieldPresent(field, RSOCKET_RPC_OPTIONS__FIRE_AND_FORGET)
                     && fieldToBoolean(field, RSOCKET_RPC_OPTIONS__FIRE_AND_FORGET)) {
                   endpoint =
-                      new FireAndForgetEndpoint(
+                      new FireAndForgetEndpointHttp(
                           service,
                           method,
                           request,
@@ -334,9 +325,35 @@ public class DefaultEndpointFactory implements EndpointFactory {
                       "creating new fire and forget endpoint for method {} with url {}",
                       method,
                       url);
+                } else if (proto.getServerStreaming()) {
+                  endpoint =
+                      new RequestStreamEndpoint(
+                          service,
+                          method,
+                          request,
+                          response,
+                          group,
+                          rSocketSupplier,
+                          hasTimeout,
+                          timeout,
+                          maxConcurrency,
+                          registry);
+                } else if (proto.getClientStreaming()) {
+                  endpoint =
+                      new RequestChannelEndpoint(
+                          service,
+                          method,
+                          request,
+                          response,
+                          group,
+                          rSocketSupplier,
+                          hasTimeout,
+                          timeout,
+                          maxConcurrency,
+                          registry);
                 } else {
                   endpoint =
-                      new RequestResponseEndpoint(
+                      new RequestResponseEndpointHttp(
                           service,
                           method,
                           request,

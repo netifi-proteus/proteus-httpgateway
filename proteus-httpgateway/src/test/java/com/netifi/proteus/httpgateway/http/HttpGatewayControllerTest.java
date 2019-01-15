@@ -8,14 +8,17 @@ import com.netifi.proteus.httpgateway.endpoint.source.ProtoDescriptor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
+import reactor.core.Exceptions;
 
 import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ForkJoinPool;
+import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Ignore
 public class HttpGatewayControllerTest {
@@ -112,6 +115,92 @@ public class HttpGatewayControllerTest {
     Assert.assertEquals(1000, response.getTime());
   }
 
+  @Test(timeout = 5000)
+  public void testStreamingWithWebSocket() throws Exception {
+    CompletableFuture<?> accumulatedMessage = new CompletableFuture<>();
+    AtomicInteger count = new AtomicInteger();
+    WebSocket webSocket =
+        HttpClient.newHttpClient()
+            .newWebSocketBuilder()
+            .buildAsync(
+                URI.create("ws://localhost:" + rule.getBindPort() + "/v1/hello/stream"),
+                new WebSocket.Listener() {
+                  @Override
+                  public CompletionStage<?> onText(
+                      WebSocket webSocket, CharSequence data, boolean last) {
+                    System.out.println("got -> " + data);
+                    if (count.incrementAndGet() > 5) {
+                      accumulatedMessage.complete(null);
+                    }
+                    return accumulatedMessage;
+                  }
+
+                  @Override
+                  public CompletionStage<?> onBinary(
+                      WebSocket webSocket, ByteBuffer data, boolean last) {
+                    System.out.println("BINARY?");
+                    return accumulatedMessage;
+                  }
+                })
+            .get();
+
+    HelloRequest request = HelloRequest.newBuilder().setName("webSocket").build();
+    String json = JsonFormat.printer().print(request);
+    webSocket.request(100);
+    webSocket.sendText(json, false).get();
+
+    accumulatedMessage.get();
+  }
+
+  @Test(timeout = 5000)
+  public void testChannelWithWebSocket() throws Exception {
+    CompletableFuture<?> accumulatedMessage = new CompletableFuture<>();
+    AtomicInteger count = new AtomicInteger();
+    WebSocket webSocket =
+        HttpClient.newHttpClient()
+            .newWebSocketBuilder()
+            .buildAsync(
+                URI.create("ws://localhost:" + rule.getBindPort() + "/v1/hello/channel"),
+                new WebSocket.Listener() {
+                  @Override
+                  public CompletionStage<?> onText(
+                      WebSocket webSocket, CharSequence data, boolean last) {
+                    System.out.println("got -> " + data);
+                    if (count.incrementAndGet() > 5) {
+                      accumulatedMessage.complete(null);
+                    }
+                    return accumulatedMessage;
+                  }
+
+                  @Override
+                  public CompletionStage<?> onBinary(
+                      WebSocket webSocket, ByteBuffer data, boolean last) {
+                    System.out.println("BINARY?");
+                    return accumulatedMessage;
+                  }
+                })
+            .get();
+  
+    webSocket.request(100);
+    
+    Executors.newSingleThreadScheduledExecutor()
+        .scheduleAtFixedRate(
+            () -> {
+              try {
+                HelloRequest request = HelloRequest.newBuilder().setName("webSocket").build();
+                String json = JsonFormat.printer().print(request);
+                webSocket.sendText(json, false).get();
+              } catch (Throwable t) {
+                throw Exceptions.propagate(t);
+              }
+            },
+            0,
+            250,
+            TimeUnit.MILLISECONDS);
+
+    accumulatedMessage.get();
+  }
+
   @Test
   public void testShouldTimeout() throws Exception {
     String request =
@@ -187,5 +276,7 @@ public class HttpGatewayControllerTest {
     Assert.assertEquals(200, resp.statusCode());
     Assert.assertEquals("yo", response.getMessage());
     Assert.assertEquals(1000, response.getTime());
+
+    System.out.println(body);
   }
 }

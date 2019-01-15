@@ -20,8 +20,7 @@ class HelloWorldServiceImpl implements HelloWorldService {
 
   @Override
   public Mono<HelloResponse> getHello(Empty message, ByteBuf metadata) {
-    return Mono.just(
-        HelloResponse.newBuilder().setMessage("yo").setTime(1000).build());
+    return Mono.just(HelloResponse.newBuilder().setMessage("yo").setTime(1000).build());
   }
 
   @Override
@@ -31,12 +30,26 @@ class HelloWorldServiceImpl implements HelloWorldService {
 
   @Override
   public Flux<HelloResponse> streamResponseWithUrl(HelloRequest message, ByteBuf metadata) {
-    throw new UnsupportedOperationException("shouldn't be called");
+    return Flux.interval(Duration.ofMillis(250))
+        .map(
+            l ->
+                HelloResponse.newBuilder()
+                    .setMessage("yo -" + message.getName())
+                    .setTime(l)
+                    .build())
+        .doOnError(throwable -> throwable.printStackTrace())
+        .onBackpressureLatest();
   }
 
   @Override
   public Flux<HelloResponse> channelWithUrl(Publisher<HelloRequest> messages, ByteBuf metadata) {
-    throw new UnsupportedOperationException("shouldn't be called");
+    return Flux.from(messages)
+        .map(
+            helloRequest ->
+                HelloResponse.newBuilder()
+                    .setMessage("yo - " + helloRequest.getName())
+                    .setTime(System.currentTimeMillis())
+                    .build());
   }
 
   @Override

@@ -13,9 +13,17 @@
  */
 package com.netifi.proteus.httpgateway.util;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.UnknownFieldSet;
+import com.google.protobuf.*;
+import com.google.protobuf.util.JsonFormat;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import io.rsocket.Payload;
+import io.rsocket.rpc.frames.Metadata;
+import io.rsocket.util.ByteBufPayload;
 import reactor.core.Exceptions;
+
+import java.nio.ByteBuffer;
 
 public final class ProtoUtil {
 
@@ -81,4 +89,51 @@ public final class ProtoUtil {
     }
     return false;
   }
+
+  public static ByteBuf serialize(MessageLite message) {
+    int length = message.getSerializedSize();
+    ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(length);
+    try {
+      message.writeTo(CodedOutputStream.newInstance(byteBuf.internalNioBuffer(0, length)));
+      byteBuf.writerIndex(length);
+      return byteBuf;
+    } catch (Throwable t) {
+      byteBuf.release();
+      throw Exceptions.propagate(t);
+    }
+  }
+
+  public static Payload messageToPayload(Message message, String service, String method) {
+    ByteBuf data = serialize(message);
+    ByteBuf metadata =
+        Metadata.encode(ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
+    return ByteBufPayload.create(data, metadata);
+  }
+
+  public static Message jsonToMessage(String json, Descriptors.Descriptor descriptor) {
+    try {
+      DynamicMessage.Builder builder = DynamicMessage.newBuilder(descriptor);
+      JsonFormat.parser().merge(json, builder);
+      return builder.build();
+    } catch (Throwable t) {
+      throw Exceptions.propagate(t);
+    }
+  }
+  
+  public static String parseResponseToJson(ByteBuf byteBuf,
+                                           Descriptors.Descriptor descriptor,
+                                           JsonFormat.TypeRegistry typeRegistry) {
+    try {
+      ByteBuffer byteBuffer = byteBuf.internalNioBuffer(0, byteBuf.readableBytes());
+      DynamicMessage message =
+        DynamicMessage.parseFrom(descriptor, CodedInputStream.newInstance(byteBuffer));
+      return JsonFormat.printer()
+               .omittingInsignificantWhitespace()
+               .usingTypeRegistry(typeRegistry)
+               .print(message);
+    } catch (Throwable t) {
+      throw Exceptions.propagate(t);
+    }
+  }
+  
 }

@@ -13,33 +13,29 @@
  */
 package com.netifi.proteus.httpgateway.endpoint;
 
-import com.google.protobuf.*;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Empty;
+import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import com.netifi.proteus.httpgateway.rsocket.RSocketSupplier;
+import com.netifi.proteus.httpgateway.util.ProtoUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
-import io.rsocket.rpc.frames.Metadata;
-import io.rsocket.util.ByteBufPayload;
 import org.reactivestreams.Publisher;
-import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerResponse;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.netifi.proteus.httpgateway.util.ProtoUtil.EMPTY_MESSAGE;
+import static com.netifi.proteus.httpgateway.util.ProtoUtil.*;
 
-public abstract class AbstractEndpoint<T> implements Endpoint {
+public abstract class HttpAbstractEndpoint<T> implements Endpoint {
   private final Descriptor request;
   private final Descriptor response;
   private final String defaultGroup;
@@ -53,7 +49,7 @@ public abstract class AbstractEndpoint<T> implements Endpoint {
   private final JsonFormat.TypeRegistry typeRegistry;
   private final boolean requestEmpty;
 
-  public AbstractEndpoint(
+  public HttpAbstractEndpoint(
       String service,
       String method,
       Descriptor request,
@@ -84,17 +80,7 @@ public abstract class AbstractEndpoint<T> implements Endpoint {
   }
 
   String parseResponseToJson(ByteBuf byteBuf) {
-    try {
-      ByteBuffer byteBuffer = byteBuf.internalNioBuffer(0, byteBuf.readableBytes());
-      DynamicMessage message =
-          DynamicMessage.parseFrom(response, CodedInputStream.newInstance(byteBuffer));
-      return JsonFormat.printer()
-          .omittingInsignificantWhitespace()
-          .usingTypeRegistry(typeRegistry)
-          .print(message);
-    } catch (Throwable t) {
-      throw Exceptions.propagate(t);
-    }
+    return ProtoUtil.parseResponseToJson(byteBuf, response, typeRegistry);
   }
 
   @Override
@@ -110,16 +96,10 @@ public abstract class AbstractEndpoint<T> implements Endpoint {
                     if (isRequestEmpty()) {
                       message = Empty.getDefaultInstance();
                     } else {
-                      DynamicMessage.Builder builder = DynamicMessage.newBuilder(request);
-                      JsonFormat.parser().merge(json, builder);
-                      message = builder.build();
+                      message = jsonToMessage(json, request);
                     }
 
-                    ByteBuf data = serialize(message);
-                    ByteBuf metadata =
-                        Metadata.encode(
-                            ByteBufAllocator.DEFAULT, service, method, Unpooled.EMPTY_BUFFER);
-                    Payload request = ByteBufPayload.create(data, metadata);
+                    Payload request = messageToPayload(message, service, method);
 
                     return applyTimeout(doApply(rSocket, request))
                         .flatMap(t -> doHandleResponse(t, response))
@@ -141,18 +121,7 @@ public abstract class AbstractEndpoint<T> implements Endpoint {
         .doFinally(s -> end());
   }
 
-  private ByteBuf serialize(MessageLite message) {
-    int length = message.getSerializedSize();
-    ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(length);
-    try {
-      message.writeTo(CodedOutputStream.newInstance(byteBuf.internalNioBuffer(0, length)));
-      byteBuf.writerIndex(length);
-      return byteBuf;
-    } catch (Throwable t) {
-      byteBuf.release();
-      throw Exceptions.propagate(t);
-    }
-  }
+  
 
   private Flux<T> applyTimeout(Publisher<T> target) {
     Flux<T> from = Flux.from(target);
