@@ -117,6 +117,7 @@ clean {
     delete protobuf.generatedFilesBaseDir
 }
 
+
 idea {
     module {
         sourceDirs += file("src/test/proto")
