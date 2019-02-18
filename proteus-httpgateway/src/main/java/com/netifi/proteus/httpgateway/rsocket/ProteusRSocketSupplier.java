@@ -15,15 +15,18 @@ package com.netifi.proteus.httpgateway.rsocket;
 
 import com.netifi.proteus.httpgateway.config.ProteusSettings;
 import io.netifi.proteus.Proteus;
+import io.netifi.proteus.common.tags.Tag;
+import io.netifi.proteus.common.tags.Tags;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.rsocket.RSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-import static com.netifi.proteus.httpgateway.util.HttpUtil.OVERRIDE_DESTINATION;
-import static com.netifi.proteus.httpgateway.util.HttpUtil.OVERRIDE_GROUP;
+import static com.netifi.proteus.httpgateway.util.HttpUtil.*;
 
 @Component
 public class ProteusRSocketSupplier implements RSocketSupplier {
@@ -54,16 +57,36 @@ public class ProteusRSocketSupplier implements RSocketSupplier {
   public RSocket apply(String rSocketKey, HttpHeaders headers) {
     String overrideGroup = headers.get(OVERRIDE_GROUP);
     String overrideDestination = headers.get(OVERRIDE_DESTINATION);
+    List<String> allAsString = headers.getAllAsString(OVERRIDE_TAG);
+
+    Tags tags = toTags(allAsString);
 
     if (overrideGroup != null && !overrideGroup.isEmpty()) {
       if (overrideDestination != null && !overrideDestination.isEmpty()) {
         return rsockets.computeIfAbsent(
-            overrideGroup,
-            g -> proteus.destinationServiceSocket(overrideDestination, overrideGroup));
+            overrideGroup, g -> proteus.destination(overrideDestination, overrideGroup));
       }
 
-      return rsockets.computeIfAbsent(overrideGroup, proteus::groupServiceSocket);
+      return rsockets.computeIfAbsent(
+          overrideGroup, s -> proteus.groupServiceSocket(overrideGroup, tags));
     }
-    return rsockets.computeIfAbsent(rSocketKey, proteus::groupServiceSocket);
+    return rsockets.computeIfAbsent(rSocketKey, s -> proteus.groupServiceSocket(rSocketKey, tags));
+  }
+
+  private Tags toTags(List<String> allAsString) {
+    if (allAsString == null || allAsString.isEmpty()) {
+      return Tags.empty();
+    } else {
+      List<Tag> collect =
+          allAsString
+              .stream()
+              .map(
+                  s -> {
+                    String[] split = s.split(":");
+                    return Tag.of(split[0], split[1]);
+                  })
+              .collect(Collectors.toList());
+      return Tags.of(collect);
+    }
   }
 }

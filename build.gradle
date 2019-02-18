@@ -2,29 +2,34 @@ subprojects {
     apply plugin: 'idea'
 
     group 'io.netifi.proteus.httpgateway'
-    version '1.6.0'
+    version '1.6.0-RC'
 
     ext {
         protobufVersion = '3.6.1'
-        proteusVersion = '1.5.3'
-        rsocketRpcVersion = '0.2.12'
-        proteusSpringVersion = '1.5.3'
+        proteusVersion = '1.6.0-RC'
+        rsocketRpcVersion = '0.2.13'
+        proteusSpringVersion = '1.6.0-RC'
         springBootBomVersion = '2.1.1.RELEASE'
         log4jVersion = '2.8.2'
         lmaxVersion = '3.3.6'
     }
 
     repositories {
-        jcenter()
-        mavenCentral()
-        maven {
-            url = 'https://dl.bintray.com/netifi/netifi-oss'
-        }
-        maven {
-            url = version.contains('SNAPSHOT') ? 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local' : 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
-            credentials {
-                username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+        repositories {
+            jcenter()
+            maven {
+                url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+                credentials {
+                    username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                    password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                }
+            }
+            maven {
+                url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+                credentials {
+                    username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                    password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                }
             }
         }
     }

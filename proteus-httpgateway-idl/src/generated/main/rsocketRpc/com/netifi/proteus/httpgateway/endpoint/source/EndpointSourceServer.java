@@ -24,7 +24,7 @@ public final class EndpointSourceServer extends io.rsocket.rpc.AbstractRSocketSe
 
     if (!tracer.isPresent()) {
       this.tracer = null;
-      this.streamProtoDescriptorsTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
+      this.streamProtoDescriptorsTrace = (ignored) -> java.util.function.Function.identity();
     } else {
       this.tracer = tracer.get();
       this.streamProtoDescriptorsTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild(this.tracer, EndpointSource.METHOD_STREAM_PROTO_DESCRIPTORS, io.rsocket.rpc.tracing.Tag.of("rsocket.service", EndpointSource.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "server"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
@@ -74,7 +74,7 @@ public final class EndpointSourceServer extends io.rsocket.rpc.AbstractRSocketSe
   }
 
   @java.lang.Override
-  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, reactor.core.publisher.Flux<io.rsocket.Payload> publisher) {
+  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, org.reactivestreams.Publisher<io.rsocket.Payload> publisher) {
     return reactor.core.publisher.Flux.error(new UnsupportedOperationException("Request-Channel not implemented."));
   }
 

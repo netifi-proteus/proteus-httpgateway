@@ -52,14 +52,14 @@ public final class HelloWorldServiceServer extends io.rsocket.rpc.AbstractRSocke
 
     if (!tracer.isPresent()) {
       this.tracer = null;
-      this.sayHelloTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
-      this.sayHelloWithUrlTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
-      this.getHelloTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
-      this.streamResponseWithUrlTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
-      this.channelWithUrlTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
-      this.sayHelloWithTimeoutTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
-      this.sayHelloWithMaxConcurrentTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
-      this.sayHelloToEmptyRoomTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild();
+      this.sayHelloTrace = (ignored) -> java.util.function.Function.identity();
+      this.sayHelloWithUrlTrace = (ignored) -> java.util.function.Function.identity();
+      this.getHelloTrace = (ignored) -> java.util.function.Function.identity();
+      this.streamResponseWithUrlTrace = (ignored) -> java.util.function.Function.identity();
+      this.channelWithUrlTrace = (ignored) -> java.util.function.Function.identity();
+      this.sayHelloWithTimeoutTrace = (ignored) -> java.util.function.Function.identity();
+      this.sayHelloWithMaxConcurrentTrace = (ignored) -> java.util.function.Function.identity();
+      this.sayHelloToEmptyRoomTrace = (ignored) -> java.util.function.Function.identity();
     } else {
       this.tracer = tracer.get();
       this.sayHelloTrace = io.rsocket.rpc.tracing.Tracing.traceAsChild(this.tracer, HelloWorldService.METHOD_SAY_HELLO, io.rsocket.rpc.tracing.Tag.of("rsocket.service", HelloWorldService.SERVICE), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.role", "server"), io.rsocket.rpc.tracing.Tag.of("rsocket.rpc.version", ""));
@@ -164,14 +164,14 @@ public final class HelloWorldServiceServer extends io.rsocket.rpc.AbstractRSocke
   }
 
   @java.lang.Override
-  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, reactor.core.publisher.Flux<io.rsocket.Payload> publisher) {
+  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, org.reactivestreams.Publisher<io.rsocket.Payload> publisher) {
     try {
       io.netty.buffer.ByteBuf metadata = payload.sliceMetadata();
       io.opentracing.SpanContext spanContext = io.rsocket.rpc.tracing.Tracing.deserializeTracingMetadata(tracer, metadata);
       switch(io.rsocket.rpc.frames.Metadata.getMethod(metadata)) {
         case HelloWorldService.METHOD_CHANNEL_WITH_URL: {
           reactor.core.publisher.Flux<com.netifi.proteus.demo.helloworld.HelloRequest> messages =
-            publisher.map(deserializer(com.netifi.proteus.demo.helloworld.HelloRequest.parser()));
+            reactor.core.publisher.Flux.from(publisher).map(deserializer(com.netifi.proteus.demo.helloworld.HelloRequest.parser()));
           return service.channelWithUrl(messages, metadata).map(serializer).transform(channelWithUrl).transform(channelWithUrlTrace.apply(spanContext));
         }
         default: {

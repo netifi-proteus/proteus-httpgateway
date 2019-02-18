@@ -16,6 +16,7 @@ package com.netifi.proteus.httpgateway.util;
 public final class HttpUtil {
   public static final String OVERRIDE_GROUP  = "Override-Group";
   public static final String OVERRIDE_DESTINATION  = "Override-Destination";
+  public static final String OVERRIDE_TAG  = "Override-Tag";
   
   private HttpUtil() {}
   

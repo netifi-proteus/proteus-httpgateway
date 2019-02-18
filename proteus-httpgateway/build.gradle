@@ -47,7 +47,7 @@ dependencies {
 
     protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:$rsocketRpcVersion"
 
-    testCompile 'org.junit.vintage:junit-vintage-engine:5.3.2'
+    testCompile 'junit:junit:4.12'
     testCompile 'commons-io:commons-io:2.6'
     testCompile 'io.projectreactor:reactor-test:3.2.1.RELEASE'
 
