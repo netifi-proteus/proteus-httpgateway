@@ -21,16 +21,6 @@ subprojects {
     version '1.6.0-RC'
     apply from: '../dependency-management.gradle'
 
-    ext {
-        protobufVersion = '3.6.1'
-        proteusVersion = '1.6.0-RC'
-        rsocketRpcVersion = '0.2.13'
-        proteusSpringVersion = '1.6.0-RC'
-        springBootBomVersion = '2.1.1.RELEASE'
-        log4jVersion = '2.8.2'
-        lmaxVersion = '3.3.6'
-    }
-
     repositories {
         repositories {
             jcenter()
