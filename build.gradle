@@ -25,6 +25,11 @@ subprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
+    compileTestJava {
+        sourceCompatibility = 11
+        targetCompatibility = 11
+    }
+
     repositories {
         repositories {
             jcenter()
