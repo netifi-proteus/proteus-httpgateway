@@ -16,10 +16,14 @@ allprojects {
 
 subprojects {
     apply plugin: 'idea'
+    apply plugin: 'java'
 
     group 'io.netifi.proteus.httpgateway'
     version '1.6.0-RC'
     apply from: '../dependency-management.gradle'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     repositories {
         repositories {
