@@ -13,6 +13,7 @@ import reactor.core.publisher.Flux;
 
 import java.io.FileInputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,7 +27,7 @@ public class FileSystemEndpointSource implements EndpointSource {
     @Value("${netifi.proteus.gateway.descriptors.directory}")  String path) {
     logger.info("file endpoint source watching path {}", path);
     this.names = ConcurrentHashMap.newKeySet();
-    this.watchEventFlux = streamProtoDescriptor(Path.of(path));
+    this.watchEventFlux = streamProtoDescriptor(Paths.get(path));
   }
 
   private Flux<ProtoDescriptor> streamProtoDescriptor(Path path) {
