@@ -49,7 +49,7 @@ public class HttpGatewayControllerRule extends ExternalResource {
 
   @Override
   protected void before() throws Throwable {
-    httpGatewayController.run(null);
+    httpGatewayController.run((String[]) null);
 
     Thread.sleep(1_000);
 

@@ -1,0 +1,13 @@
+apply plugin: 'io.spring.dependency-management'
+
+ext['proteus-common-dependencies.version'] = 'Andromeda-BUILD-SNAPSHOT'
+ext['proteus-bom.version'] = '1.6.0-RC'
+ext['spring-boot-dependencies.version'] = '2.1.3.RELEASE'
+
+dependencyManagement {
+  imports {
+    mavenBom "org.springframework.boot:spring-boot-dependencies:${ext['spring-boot-dependencies.version']}"
+    mavenBom "io.netifi.proteus:proteus-common-dependencies:${ext['proteus-common-dependencies.version']}"
+    mavenBom "io.netifi.proteus:proteus-bom:${ext['proteus-bom.version']}"
+  }
+}

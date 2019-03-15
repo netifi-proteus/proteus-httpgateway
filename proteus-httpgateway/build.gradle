@@ -2,8 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'com.bmuschko.docker-java-application' version '4.2.0'
-    id 'io.spring.dependency-management' version '1.0.6.RELEASE'
-    id 'com.google.protobuf' version '0.8.5'
+    id 'com.google.protobuf' version '0.8.8'
 }
 
 docker {
@@ -21,35 +20,31 @@ docker {
 
 mainClassName = 'com.netifi.proteus.httpgateway.Main'
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootBomVersion}"
-    }
-}
-
 dependencies {
     compile project(':proteus-httpgateway-idl')
 
-    compile 'org.springframework.boot:spring-boot-starter'
-    
-    compile "io.netifi.proteus:proteus-metrics-micrometer:$proteusVersion"
+    compile ('org.springframework.boot:spring-boot-starter') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 
-    compile "com.google.protobuf:protobuf-java:$protobufVersion"
-    compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+    compile "io.netifi.proteus:proteus-metrics-micrometer"
 
-    compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
-    compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
-    compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+    compile "com.google.protobuf:protobuf-java"
+    compile "com.google.protobuf:protobuf-java-util"
 
-    compile "com.lmax:disruptor:$lmaxVersion"
+    compile "org.apache.logging.log4j:log4j-api"
+    compile "org.apache.logging.log4j:log4j-core"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl"
 
-    compile 'io.projectreactor.addons:reactor-extra:3.2.1.RELEASE'
+    compile "com.lmax:disruptor"
 
-    protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:$rsocketRpcVersion"
+    compile 'io.projectreactor.addons:reactor-extra'
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'commons-io:commons-io:2.6'
-    testCompile 'io.projectreactor:reactor-test:3.2.1.RELEASE'
+    protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl"
+
+    testCompile 'junit:junit'
+    testCompile 'commons-io:commons-io'
+    testCompile 'io.projectreactor:reactor-test'
 
 }
 
@@ -87,11 +82,11 @@ protobuf {
     generatedFilesBaseDir = "${projectDir}/src/generated"
 
     protoc {
-        artifact = "com.google.protobuf:protoc:${protobufVersion}"
+        artifact = "com.google.protobuf:protoc"
     }
     plugins {
         rsocketRpc {
-            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf:$rsocketRpcVersion"
+            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf"
         }
     }
     generateProtoTasks {

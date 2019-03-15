@@ -1,8 +1,25 @@
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
+plugins {
+    id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
+}
+
+allprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+}
+
 subprojects {
     apply plugin: 'idea'
 
     group 'io.netifi.proteus.httpgateway'
     version '1.6.0-RC'
+    apply from: '../dependency-management.gradle'
 
     ext {
         protobufVersion = '3.6.1'

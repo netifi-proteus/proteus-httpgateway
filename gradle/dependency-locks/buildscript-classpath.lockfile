@@ -1,0 +1,5 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.0.7.RELEASE
+io.spring.gradle:dependency-management-plugin:1.0.7.RELEASE
