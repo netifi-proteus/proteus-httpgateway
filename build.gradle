@@ -1,44 +1,52 @@
-plugins {
-    id 'com.gradle.build-scan' version '1.15.1'
-    id 'com.github.hierynomus.license' version '0.14.0'
-    id 'net.saliman.properties' version '1.4.6'
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
 }
 
-buildScan {
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-    publishAlways()
+plugins {
+    id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
 }
 
 allprojects {
-    apply plugin: 'com.github.hierynomus.license'
-    apply plugin: 'idea'
-    apply plugin: 'net.saliman.properties'
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+}
 
-    ext {
-        protobufVersion = '3.6.1'
-        rsocketRpcVersion = '0.2.12'
-        proteusVersion = '1.5.3'
-        springbomVersion = 'Cairo-SR3'
+subprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java'
+
+    group 'io.netifi.proteus.httpgateway'
+    version '1.6.0-RC'
+    apply from: '../dependency-management.gradle'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    compileTestJava {
+        sourceCompatibility = 11
+        targetCompatibility = 11
     }
 
     repositories {
-        jcenter()
-        mavenCentral()
-        maven {
-            url = 'https://dl.bintray.com/netifi/netifi-oss'
-        }
-        maven {
-            url = version.contains('SNAPSHOT') ? 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local' : 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
-            credentials {
-                username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+        repositories {
+            jcenter()
+            maven {
+                url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+                credentials {
+                    username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                    password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                }
+            }
+            maven {
+                url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+                credentials {
+                    username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                    password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                }
             }
         }
-    }
-
-    license {
-        header rootProject.file('codequality/HEADER')
-        strictCheck true
     }
 }

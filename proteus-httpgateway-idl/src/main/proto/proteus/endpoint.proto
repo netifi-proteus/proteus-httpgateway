@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package proteus_gateway;
+
+import "google/protobuf/empty.proto";
+
+option java_package = "com.netifi.proteus.httpgateway.endpoint.source";
+option java_outer_classname = "EndpointService";
+option java_multiple_files = true;
+
+message ProtoDescriptor {
+    enum EventType {
+        ADD     = 0;
+        REPLACE = 1;
+        DELETE  = 2;
+    }
+
+    // name to identify proto descriptor file
+    string name              = 1;
+    bytes descriptorBytes    = 2;
+    EventType type           = 3;
+}
+
+service EndpointSource {
+    rpc StreamProtoDescriptors (google.protobuf.Empty) returns (stream ProtoDescriptor) {}
+}

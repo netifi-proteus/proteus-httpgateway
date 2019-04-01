@@ -1,117 +1,129 @@
 /**
  * Copyright 2018 Netifi Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.netifi.proteus.httpgateway.http;
 
-import com.netifi.proteus.httpgateway.invocation.ServiceInvocationFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.netifi.proteus.httpgateway.endpoint.Endpoint;
+import com.netifi.proteus.httpgateway.endpoint.registry.EndpointRegistry;
+import com.netifi.proteus.httpgateway.util.HttpUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+import reactor.netty.http.server.HttpServer;
+import reactor.netty.http.server.HttpServerRequest;
+import reactor.netty.http.server.HttpServerResponse;
 
-/**
- * Restful endpoint responsible for mapping HTTP requests to Proteus requests.
- */
-@RestController
-public class HttpGatewayController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpGatewayController.class);
+import java.nio.charset.Charset;
 
-    @Autowired
-    private ServiceInvocationFactory serviceInvocationFactory;
+@Component
+public class HttpGatewayController implements CommandLineRunner {
+  private static final Logger logger = LogManager.getLogger(HttpGatewayController.class);
+  private static final Charset CHARSET = Charset.forName("UTF-8");
 
-    /**
-     * Handles mapping request/response interactions with a group from HTTP to Proteus.
-     *
-     * @param group proteus group name
-     * @param service proteus service name
-     * @param method proteus service method name
-     * @param body http request body
-     * @return http response
-     */
-    @PostMapping(value = "/{group}/{service}/{method}",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity> requestReplyGroup(@PathVariable("group") String group,
-                                                  @PathVariable("service") String service,
-                                                  @PathVariable("method") String method,
-                                                  @RequestBody String body) {
-        LOGGER.debug("Received Group Request [group='{}', service='{}', method='{}']", group, service, method);
+  private final String bindAddress;
 
-        return serviceInvocationFactory.create(group, service, method, body)
-                .invoke()
-                .flatMap(result -> {
-                    if (result.isSuccess()) {
-                        if (result.getResponse() != null) {
-                            return Mono.just(ResponseEntity.status(result.getHttpStatus())
-                                    .body(result.getResponse()));
-                        } else {
-                            return Mono.just(ResponseEntity.status(result.getHttpStatus()).build());
-                        }
-                    } else {
-                        HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
+  private final int bindPort;
 
-                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                                .body(response));
-                    }
-                });
+  private final EndpointRegistry registry;
+
+  @Autowired
+  public HttpGatewayController(
+      @Value("${netifi.proteus.gateway.bindAddress}") String bindAddress,
+      @Value("${netifi.proteus.gateway.bindPort}") int bindPort,
+      EndpointRegistry registry) {
+    this.bindAddress = bindAddress;
+    this.bindPort = bindPort;
+    this.registry = registry;
+  }
+
+  @Override
+  public void run(String... args) throws Exception {
+    logger.info("Starting Proteus HTTP Gateway");
+    logger.info("Binding to Address {}", bindAddress);
+    logger.info("Binding to Port {}", bindPort);
+    HttpServer.create()
+        .host(bindAddress)
+        .port(bindPort)
+        .compress(true)
+        .handle(this::handle)
+        .bindNow();
+  }
+
+  private Publisher<Void> handle(HttpServerRequest request, HttpServerResponse response) {
+    String uri = HttpUtil.stripTrailingSlash(request.uri());
+    //              transportHeaders.get().forEach(response::addHeader);
+    Endpoint endpoint = registry.lookup(uri);
+
+    if (endpoint == null) {
+      logger.error("no endpoint found for uri {}", uri);
+      return response.sendNotFound();
+    } else if (endpoint.isResponseStreaming() || endpoint.isRequestStreaming()) {
+      return endpoint.apply(request.requestHeaders(), response);
+    } else if (request.method() == HttpMethod.POST) {
+      return handlePost(uri, endpoint, request, response);
+    } else if (request.method() == HttpMethod.GET && endpoint.isRequestEmpty()) {
+      return handleGet(uri, endpoint, request, response);
+    } else {
+      response.status(HttpResponseStatus.METHOD_NOT_ALLOWED);
+      return response.send();
+    }
+  }
+
+  private Publisher<Void> handlePost(
+      String uri, Endpoint endpoint, HttpServerRequest request, HttpServerResponse response) {
+    HttpHeaders headers = request.requestHeaders();
+    if (!isContentTypeJson(headers)) {
+      logger.error("request to endpoint for uri {} didn't contain json", uri);
+      response.status(HttpResponseStatus.BAD_REQUEST);
+      return response.send();
+    }
+    return request
+        .receiveContent()
+        .flatMap(
+            content -> {
+              ByteBuf bytes = content.content();
+              if (!bytes.isReadable()) {
+                logger.error("request to uri {} was empty", uri);
+              }
+              String json = bytes.toString(CHARSET);
+
+              return endpoint.apply(headers, json, response);
+            });
+  }
+
+  private Publisher<Void> handleGet(
+      String uri, Endpoint endpoint, HttpServerRequest request, HttpServerResponse response) {
+    HttpHeaders headers = request.requestHeaders();
+    return endpoint.apply(headers, response);
+  }
+
+  protected boolean isContentTypeJson(HttpHeaders headers) {
+    boolean found = false;
+    for (String header : headers.getAllAsString("Content-Type")) {
+      if (header.contains("application/json")) {
+        found = true;
+        break;
+      }
     }
 
-    /**
-     * Handles mapping request/response interactions with a specific destination from HTTP to Proteus.
-     *
-     * @param group proteus group name
-     * @param destination proteus destination name
-     * @param service proteus service name
-     * @param method proteus service method name
-     * @param body http request body
-     * @return http response
-     */
-    @PostMapping(value = "/{group}/{destination}/{service}/{method}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity> requestReplyDestination(@PathVariable("group") String group,
-                                                        @PathVariable("destination") String destination,
-                                                        @PathVariable("service") String service,
-                                                        @PathVariable("method") String method,
-                                                        @RequestBody String body) {
-        LOGGER.debug("Received Destination Request [group='{}', destination='{}', service='{}', method='{}']", group, destination, service, method);
-
-        return serviceInvocationFactory.create(group, destination, service, method, body)
-                .invoke()
-                .flatMap(result -> {
-                    if (result.isSuccess()) {
-                        return Mono.just(ResponseEntity.ok(result.getResponse()));
-                    } else {
-                        HttpErrorResponse response = HttpErrorResponse.of(HttpStatus.BAD_GATEWAY, "Need a message here");
-
-                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                                .body(response));
-                    }
-                });
-    }
-
-    @ExceptionHandler(Throwable.class)
-    public Mono<ResponseEntity<HttpErrorResponse>> handleExceptions(Throwable throwable) {
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(HttpErrorResponse.of(throwable)));
-    }
+    return found;
+  }
 }
