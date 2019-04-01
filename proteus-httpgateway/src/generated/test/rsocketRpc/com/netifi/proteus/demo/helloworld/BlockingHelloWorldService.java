@@ -3,7 +3,7 @@ package com.netifi.proteus.demo.helloworld;
 /**
  */
 @javax.annotation.Generated(
-    value = "by RSocket RPC proto compiler (version 0.2.14)",
+    value = "by RSocket RPC proto compiler (version 0.2.13.3)",
     comments = "Source: proteus/helloworld.proto")
 public interface BlockingHelloWorldService {
   String SERVICE_ID = "com.netifi.proteus.demo.helloworld.HelloWorldService";

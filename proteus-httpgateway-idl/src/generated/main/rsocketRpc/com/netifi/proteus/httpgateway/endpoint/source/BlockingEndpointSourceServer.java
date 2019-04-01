@@ -1,7 +1,7 @@
 package com.netifi.proteus.httpgateway.endpoint.source;
 
 @javax.annotation.Generated(
-    value = "by RSocket RPC proto compiler (version 0.2.14)",
+    value = "by RSocket RPC proto compiler (version 0.2.13.3)",
     comments = "Source: proteus/endpoint.proto")
 @io.rsocket.rpc.annotations.internal.Generated(
     type = io.rsocket.rpc.annotations.internal.ResourceType.SERVICE,
@@ -66,7 +66,7 @@ public final class BlockingEndpointSourceServer extends io.rsocket.rpc.AbstractR
   }
 
   @java.lang.Override
-  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, reactor.core.publisher.Flux<io.rsocket.Payload> publisher) {
+  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, org.reactivestreams.Publisher<io.rsocket.Payload> publisher) {
     return reactor.core.publisher.Flux.error(new UnsupportedOperationException("Request-Channel not implemented."));
   }
 

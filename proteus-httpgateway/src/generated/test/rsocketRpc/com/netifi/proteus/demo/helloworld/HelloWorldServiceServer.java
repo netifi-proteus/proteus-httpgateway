@@ -164,14 +164,14 @@ public final class HelloWorldServiceServer extends io.rsocket.rpc.AbstractRSocke
   }
 
   @java.lang.Override
-  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, reactor.core.publisher.Flux<io.rsocket.Payload> publisher) {
+  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, org.reactivestreams.Publisher<io.rsocket.Payload> publisher) {
     try {
       io.netty.buffer.ByteBuf metadata = payload.sliceMetadata();
       io.opentracing.SpanContext spanContext = io.rsocket.rpc.tracing.Tracing.deserializeTracingMetadata(tracer, metadata);
       switch(io.rsocket.rpc.frames.Metadata.getMethod(metadata)) {
         case HelloWorldService.METHOD_CHANNEL_WITH_URL: {
           reactor.core.publisher.Flux<com.netifi.proteus.demo.helloworld.HelloRequest> messages =
-            publisher.map(deserializer(com.netifi.proteus.demo.helloworld.HelloRequest.parser()));
+            reactor.core.publisher.Flux.from(publisher).map(deserializer(com.netifi.proteus.demo.helloworld.HelloRequest.parser()));
           return service.channelWithUrl(messages, metadata).map(serializer).transform(channelWithUrl).transform(channelWithUrlTrace.apply(spanContext));
         }
         default: {

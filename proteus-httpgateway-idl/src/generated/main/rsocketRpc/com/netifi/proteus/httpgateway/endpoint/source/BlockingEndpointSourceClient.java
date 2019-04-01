@@ -1,7 +1,7 @@
 package com.netifi.proteus.httpgateway.endpoint.source;
 
 @javax.annotation.Generated(
-    value = "by RSocket RPC proto compiler (version 0.2.14)",
+    value = "by RSocket RPC proto compiler (version 0.2.13.3)",
     comments = "Source: proteus/endpoint.proto")
 @io.rsocket.rpc.annotations.internal.Generated(
     type = io.rsocket.rpc.annotations.internal.ResourceType.CLIENT,

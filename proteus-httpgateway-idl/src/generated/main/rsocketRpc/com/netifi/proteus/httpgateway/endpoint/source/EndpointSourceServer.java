@@ -74,7 +74,7 @@ public final class EndpointSourceServer extends io.rsocket.rpc.AbstractRSocketSe
   }
 
   @java.lang.Override
-  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, reactor.core.publisher.Flux<io.rsocket.Payload> publisher) {
+  public reactor.core.publisher.Flux<io.rsocket.Payload> requestChannel(io.rsocket.Payload payload, org.reactivestreams.Publisher<io.rsocket.Payload> publisher) {
     return reactor.core.publisher.Flux.error(new UnsupportedOperationException("Request-Channel not implemented."));
   }
 
