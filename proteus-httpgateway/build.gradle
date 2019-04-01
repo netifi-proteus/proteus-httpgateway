@@ -1,66 +1,133 @@
 plugins {
-    id 'java'
     id 'application'
-    id 'maven-publish'
-    id 'com.palantir.docker' version '0.20.1'
-    id 'org.springframework.boot' version '2.0.0.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.5.RELEASE'
+    id 'com.bmuschko.docker-java-application' version '4.2.0'
+    id 'com.google.protobuf' version '0.8.8'
 }
 
-apply from: file("${rootProject.projectDir}/gradle/java.gradle")
+docker {
+    registryCredentials {
+        url = 'https://netifi.azurecr.io'
+        username = project.findProperty('netifiPrivateDockerRegistryUsername') ?: System.getenv("DOCKER_NETIFI_USERNAME")
+        password = project.findProperty('netifiPrivateDockerRegistryPassword') ?: System.getenv("DOCKER_NETIFI_PASSWORD")
+    }
+    javaApplication {
+        baseImage = 'openjdk:11-jre-slim'
+        maintainer = 'Netifi'
+        ports = []
+    }
+}
 
-sourceCompatibility = 1.8
 mainClassName = 'com.netifi.proteus.httpgateway.Main'
 
-// Dependency Management
-dependencyManagement {
-    imports {
-        mavenBom "io.spring.platform:platform-bom:${springbomVersion}"
-    }
-}
-
 dependencies {
-    compile 'org.springframework.boot:spring-boot-starter-webflux'
-    compile "io.netifi.proteus:proteus-client:${proteusVersion}"
-    compile "com.google.protobuf:protobuf-java:${protobufVersion}"
-    compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+    compile project(':proteus-httpgateway-idl')
+
+    compile ('org.springframework.boot:spring-boot-starter') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+
+    compile "io.netifi.proteus:proteus-metrics-micrometer"
+
+    compile "com.google.protobuf:protobuf-java"
+    compile "com.google.protobuf:protobuf-java-util"
+
+    compile "org.apache.logging.log4j:log4j-api"
+    compile "org.apache.logging.log4j:log4j-core"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl"
+
+    compile "com.lmax:disruptor"
+
+    compile 'io.projectreactor.addons:reactor-extra'
+
+    protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl"
+
+    testCompile 'junit:junit'
+    testCompile 'commons-io:commons-io'
+    testCompile 'io.projectreactor:reactor-test'
+
 }
 
-// Run Configuration
-run {
-    systemProperties System.getProperties()
-}
+applicationDefaultJvmArgs = [
+        '-XX:+IgnoreUnrecognizedVMOptions',
+        '-XshowSettings:vm',
+        '-XX:+UseG1GC',
+        '-XX:MaxGCPauseMillis=200',
+        '-XX:+AlwaysPreTouch',
+        '-XX:+UseStringDeduplication',
+        '-XX:+ExplicitGCInvokesConcurrent',
+        '-XX:+ParallelRefProcEnabled',
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+UseCGroupMemoryLimitForHeap',
+        '-XX:InitialRAMPercentage=70',
+        '-XX:MaxRAMPercentage=70',
+        '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+        '-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector'
+]
 
-// Artifact Packaging
-docker {
-    if (version.endsWith('SNAPSHOT')) {
-        if (project.hasProperty('commitHash')) {
-            name "netifi/${bootJar.baseName}:$version-${commitHash}"
-        } else {
-            name "netifi/${bootJar.baseName}:$version"
-        }
-    } else {
-        if (project.hasProperty('isRelease')) {
-            name "netifi/${bootJar.baseName}"
-            tags "$version"
-        } else {
-            name "netifi/${bootJar.baseName}:$version"
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
         }
     }
-    dockerfile file("${projectDir}/Dockerfile")
-    files bootJar.archivePath
-    buildArgs([JAR_FILE: "${bootJar.archiveName}"])
 }
 
-// Artifact Publishing
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            artifact distZip
-            artifact distTar
+configurations {
+    providedRuntime
+    compile.exclude(group: 'ch.qos.logback')
+}
+
+protobuf {
+    generatedFilesBaseDir = "${projectDir}/src/generated"
+
+    protoc {
+        artifact = "com.google.protobuf:protoc"
+    }
+    plugins {
+        rsocketRpc {
+            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf"
         }
     }
+    generateProtoTasks {
+        all().each { task ->
+            // Recompile protos when build.gradle has been changed, because
+            // it's possible the version of protoc has been changed.
+            task.inputs.file "${rootProject.projectDir}/build.gradle"
+            task.plugins {
+                rsocketRpc {}
+            }
+
+            // Generate a descriptor
+            task.generateDescriptorSet = true
+            task.descriptorSetOptions.path =
+                    "${projectDir}/build/descriptors/${task.sourceSet.name}.dsc"
+            task.descriptorSetOptions.includeSourceInfo = true
+            task.descriptorSetOptions.includeImports = true
+        }
+    }
+}
+
+clean {
+    delete protobuf.generatedFilesBaseDir
+}
+
+
+idea {
+    module {
+        sourceDirs += file("src/test/proto")
+        sourceDirs += file("src/generated/test/java")
+        sourceDirs += file("src/generated/test/rsocketRpc")
+
+        generatedSourceDirs += file('src/generated/test/java')
+        generatedSourceDirs += file('src/generated/test/rsocketRpc')
+
+    }
+}
+
+test {
+    exclude 'com/netifi/proteus/demo/**'
+}
+
+clean {
+    delete 'src/generated/'
 }

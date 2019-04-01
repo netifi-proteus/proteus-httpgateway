@@ -20,30 +20,29 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 @Component
 @ConfigurationProperties("netifi.proteus")
 public class ProteusSettings {
     public static final String DEFAULT_BROKER_HOSTNAME = "localhost";
     public static final Integer DEFAULT_BROKER_PORT = 8001;
+    public static final Boolean DEFAULT_SSL_DISABLED = false;
 
     private String brokerHostname;
 
-    @Min(value = 0)
-    @Max(value = 65_535)
     private Integer brokerPort;
 
-    @NotNull
     private Long accessKey;
 
-    @NotNull
     private String accessToken;
 
-    @Min(value = 1)
     private Integer poolSize;
+    
+    private Boolean sslDisabled;
+    
+    private String group;
+    
+    private String destination;
 
     @PostConstruct
     public void init() {
@@ -53,6 +52,10 @@ public class ProteusSettings {
 
         if (brokerPort == null) {
             brokerPort = DEFAULT_BROKER_PORT;
+        }
+        
+        if (sslDisabled == null) {
+            sslDisabled = DEFAULT_SSL_DISABLED;
         }
     }
 
@@ -94,5 +97,29 @@ public class ProteusSettings {
 
     public void setPoolSize(Integer poolSize) {
         this.poolSize = poolSize;
+    }
+    
+    public boolean isSslDisabled() {
+        return sslDisabled;
+    }
+    
+    public void setSslDisabled(boolean sslDisabled) {
+        this.sslDisabled = sslDisabled;
+    }
+    
+    public String getGroup() {
+        return group;
+    }
+    
+    public void setGroup(String group) {
+        this.group = group;
+    }
+    
+    public String getDestination() {
+        return destination;
+    }
+    
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 }

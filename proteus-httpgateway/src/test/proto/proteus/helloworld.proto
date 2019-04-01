@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package com.netifi.proteus.demo.helloworld;
+
+option java_package = "com.netifi.proteus.demo.helloworld";
+option java_outer_classname = "HelloWorldServiceProto";
+option java_multiple_files = true;
+
+import "google/protobuf/empty.proto";
+import "rsocket/options.proto";
+import "proteus/gateway.proto";
+
+option (proteus_gateway.global).group = "helloGroup";
+
+service HelloWorldService {
+  option (proteus_gateway.service).url =  "/v1/hello";
+
+  rpc SayHello (HelloRequest) returns (HelloResponse) {}
+
+  rpc SayHelloWithUrl (HelloRequest) returns (HelloResponse) {
+    option (proteus_gateway.method).url = "/say";
+   }
+
+  rpc GetHello (google.protobuf.Empty) returns (HelloResponse) {
+    option (proteus_gateway.method).url = "/get";
+   }
+
+  rpc StreamResponseWithUrl (HelloRequest) returns (stream HelloResponse) {
+   option (proteus_gateway.method).url = "/stream";
+  }
+
+  rpc ChannelWithUrl (stream HelloRequest) returns (stream HelloResponse) {
+    option (proteus_gateway.method).url = "/channel";
+  }
+
+  rpc SayHelloWithTimeout (HelloRequest) returns (HelloResponse) {
+    option (proteus_gateway.method).url = "/timeout";
+    option (proteus_gateway.method).timeout_millis = 2000;
+  }
+
+  rpc SayHelloWithMaxConcurrent (HelloRequest) returns (HelloResponse) {
+    option (proteus_gateway.method).url = "/max";
+    option (proteus_gateway.method).timeout_millis = 2000;
+    option (proteus_gateway.method).max_concurrency = 10;
+  }
+
+  rpc SayHelloToEmptyRoom (HelloRequest) returns (google.protobuf.Empty) {
+      option (proteus_gateway.method).url = "/empty";
+      option (io.rsocket.rpc.options) = {
+        fire_and_forget: true
+      };
+  }
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloResponse {
+  string message = 1;
+  int64 time = 2;
+}

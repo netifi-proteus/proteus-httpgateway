@@ -48,6 +48,16 @@ You can build Proteus HTTP Gateway as an executable jar using the following comm
 
     $ ./gradlew clean build
     
+## Updating Dependencies
+Proteus HTTP Gateway build uses [Dependencies Lock strategy](https://docs.gradle.org/current/userguide/dependency_locking.html)
+Which keeps all dependencies versions snapshot in one file. Such a strategy allows avoiding caveats with libs versions and prevent accidental introduction of new dependencies in the project.
+
+In order to update the dependencies versions, it is required to run the project build with 
+additional command as in the following sample
+
+    $ ./gradlew clean build --write-locks
+    
+    
 ## Examples
 Please see the included [demo project](demo) for an example on how to configure and use Proteus HTTP Gateway.
 
