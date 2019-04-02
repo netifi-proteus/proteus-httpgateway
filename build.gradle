@@ -19,7 +19,7 @@ subprojects {
     apply plugin: 'java'
 
     group 'io.netifi.proteus.httpgateway'
-    version '1.6.0-RC'
+    version '1.6.0'
     apply from: '../dependency-management.gradle'
 
     sourceCompatibility = 1.8
@@ -33,6 +33,9 @@ subprojects {
     repositories {
         repositories {
             jcenter()
+            maven {
+                url "https://dl.bintray.com/netifi/netifi-oss"
+            }
             maven {
                 url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
                 credentials {
