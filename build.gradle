@@ -3,8 +3,23 @@ buildscript {
         resolutionStrategy.activateDependencyLocking()
     }
     repositories {
+        jcenter()
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url "https://dl.bintray.com/netifi/netifi-oss"
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
         }
     }
     dependencies {
@@ -17,6 +32,7 @@ plugins {
     id 'com.gradle.build-scan' version '2.0.2' // declare before any other plugin
     id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
     id "com.github.hierynomus.license" version '0.15.0'
+    id 'com.palantir.git-version' version '0.12.0-rc2'
 }
 
 buildScan {
@@ -24,9 +40,49 @@ buildScan {
     termsOfServiceAgree = 'yes'
 }
 
+
+def details = versionDetails()
+def versionSuffix = ""
+def buildNumber = "${System.getenv("BUILD_NUMBER") ?: "dev"}"
+def tmpArtifactVersion = "${project.version}"
+
+if (details.branchName != null) {
+    if (details.branchName.startsWith("develop")) {
+        versionSuffix = "-SNAPSHOT"
+        tmpArtifactVersion += "-${buildNumber}-SNAPSHOT"
+    } else if (details.branchName.startsWith("release")) {
+        versionSuffix = "-RC"
+        tmpArtifactVersion += "-${buildNumber}-RC"
+    } else if (details.branchName.split("/").size() > 1) {
+        versionSuffix = "-${details.branchName.replace("/","-")}-SNAPSHOT"
+        tmpArtifactVersion += "-${details.branchName.replace("/","-")}-${buildNumber}-SNAPSHOT"
+    }
+}
+
 allprojects {
     dependencyLocking {
         lockAllConfigurations()
+    }
+
+    repositories {
+        jcenter()
+        maven {
+            url "https://dl.bintray.com/netifi/netifi-oss"
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+        }
     }
 }
 
@@ -71,6 +127,10 @@ subprojects {
                 }
             }
         }
+    }
+
+    ext {
+        artifactVersion = "${tmpArtifactVersion}"
     }
 
     // Build Source Jarst
