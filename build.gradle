@@ -37,11 +37,10 @@ subprojects {
     apply plugin: 'com.jfrog.artifactory'
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
+    apply from: '../dependency-management.gradle'
 //    apply plugin: 'license'
 
-    group 'io.netifi.proteus.httpgateway'
-    version '1.6.0'
-    apply from: '../dependency-management.gradle'
+    project.version += project.hasProperty('versionSuffix') ? project.property('versionSuffix') : ''
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
