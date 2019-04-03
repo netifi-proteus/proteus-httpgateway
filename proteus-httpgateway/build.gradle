@@ -196,21 +196,21 @@ task buildImage(type: DockerBuildImage, dependsOn: build) {
     inputDir = new File("${projectDir}")
 
     if (version.endsWith('SNAPSHOT') || version.endsWith('RC')) {
-        tags = [ "netifi.azurecr.io/proteus:${artifactVersion}".toString() ]
+        tags = [ "netifi.azurecr.io/proteus-httpgateway:${artifactVersion}".toString() ]
     } else {
         if (project.hasProperty('tagLatest') && project.property('tagLatest').toBoolean()) {
-            tags = [ 'netifi/proteus:latest', "netifi/proteus:${version}".toString() ]
+            tags = [ 'netifi/proteus-httpgateway:latest', "netifi/proteus-httpgateway:${version}".toString() ]
         } else {
-            tags = [ "netifi/proteus:${version}".toString() ]
+            tags = [ "netifi/proteus-httpgateway:${version}".toString() ]
         }
     }
 }
 
 task pushImage(type: DockerPushImage, dependsOn: buildImage) {
     if (version.endsWith('SNAPSHOT') || version.endsWith('RC')) {
-        imageName = "netifi.azurecr.io/proteus"
+        imageName = "netifi.azurecr.io/proteus-httpgateway"
     } else {
-        imageName = "netifi/proteus"
+        imageName = "netifi/proteus-httpgateway"
     }
 }
 
