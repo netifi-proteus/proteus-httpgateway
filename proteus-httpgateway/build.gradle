@@ -1,23 +1,65 @@
 plugins {
     id 'application'
-    id 'com.bmuschko.docker-java-application' version '4.2.0'
+    id 'maven-publish'
+    id 'com.bmuschko.docker-java-application' version '4.5.0'
+    id 'com.gorylenko.gradle-git-properties' version '2.0.0'
+    id 'com.palantir.git-version' version '0.12.0-rc2'
     id 'com.google.protobuf' version '0.8.8'
 }
 
-docker {
-    registryCredentials {
-        url = 'https://netifi.azurecr.io'
-        username = project.findProperty('netifiPrivateDockerRegistryUsername') ?: System.getenv("DOCKER_NETIFI_USERNAME")
-        password = project.findProperty('netifiPrivateDockerRegistryPassword') ?: System.getenv("DOCKER_NETIFI_PASSWORD")
-    }
-    javaApplication {
-        baseImage = 'openjdk:11-jre-slim'
-        maintainer = 'Netifi'
-        ports = []
+ext {
+    commonJvmArgs = [
+            '-XX:+IgnoreUnrecognizedVMOptions',
+            '-XshowSettings:vm',
+            '-XX:+UseG1GC',
+            '-XX:MaxGCPauseMillis=200',
+            '-XX:+AlwaysPreTouch',
+            '-XX:+UseStringDeduplication',
+            '-XX:+ExplicitGCInvokesConcurrent',
+            '-XX:+ParallelRefProcEnabled',
+            '-XX:+UnlockExperimentalVMOptions',
+            '-XX:+UseCGroupMemoryLimitForHeap',
+            '-XX:InitialRAMPercentage=70',
+            '-XX:MaxRAMPercentage=70',
+            '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+            '-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector'
+    ]
+}
+
+
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class':             "${mainClassName}",
+                'Implementation-Title':   "${project.name}",
+                'Implementation-Version': "${project.version}",
+                'Implementation-Vendor':  "Netifi Inc."
+        )
     }
 }
 
+
+// Artifact Publishing
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact distZip
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}
+
+
+
 mainClassName = 'com.netifi.proteus.httpgateway.Main'
+
+// Properties
+application {
+    mainClassName = "com.netifi.proteus.httpgateway.Main"
+    applicationDefaultJvmArgs = ['-Xlog:gc:gc.log::filecount=10,filesize=100M'].plus(project.ext.commonJvmArgs)
+}
 
 dependencies {
     compile project(':proteus-httpgateway-idl')
@@ -47,35 +89,6 @@ dependencies {
 
 }
 
-applicationDefaultJvmArgs = [
-        '-XX:+IgnoreUnrecognizedVMOptions',
-        '-XshowSettings:vm',
-        '-XX:+UseG1GC',
-        '-XX:MaxGCPauseMillis=200',
-        '-XX:+AlwaysPreTouch',
-        '-XX:+UseStringDeduplication',
-        '-XX:+ExplicitGCInvokesConcurrent',
-        '-XX:+ParallelRefProcEnabled',
-        '-XX:+UnlockExperimentalVMOptions',
-        '-XX:+UseCGroupMemoryLimitForHeap',
-        '-XX:InitialRAMPercentage=70',
-        '-XX:MaxRAMPercentage=70',
-        '-Xlog:gc:gc.log::filecount=10,filesize=100M',
-        '-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector'
-]
-
-configurations.all {
-    resolutionStrategy {
-        dependencySubstitution {
-            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
-        }
-    }
-}
-
-configurations {
-    providedRuntime
-    compile.exclude(group: 'ch.qos.logback')
-}
 
 protobuf {
     generatedFilesBaseDir = "${projectDir}/src/generated"
@@ -128,6 +141,179 @@ test {
     exclude 'com/netifi/proteus/demo/**'
 }
 
-clean {
-    delete 'src/generated/'
+applicationDefaultJvmArgs = [
+        '-XX:+IgnoreUnrecognizedVMOptions',
+        '-XshowSettings:vm',
+        '-XX:+UseG1GC',
+        '-XX:MaxGCPauseMillis=200',
+        '-XX:+AlwaysPreTouch',
+        '-XX:+UseStringDeduplication',
+        '-XX:+ExplicitGCInvokesConcurrent',
+        '-XX:+ParallelRefProcEnabled',
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+UseCGroupMemoryLimitForHeap',
+        '-XX:InitialRAMPercentage=70',
+        '-XX:MaxRAMPercentage=70',
+        '-Xlog:gc:gc.log::filecount=10,filesize=100M',
+        '-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector'
+]
+
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('com.google.guava:guava') with module('com.google.guava:guava:22.0')
+        }
+    }
+}
+
+configurations {
+    providedRuntime
+    compile.exclude(group: 'ch.qos.logback')
+}
+
+
+
+// Docker Publishing
+import com.bmuschko.gradle.docker.tasks.image.*
+
+docker {
+    registryCredentials {
+        if (version.endsWith('SNAPSHOT') || version.endsWith('RC')) {
+            // Private Docker Repo
+            url = 'https://netifi.azurecr.io'
+            username = project.findProperty('netifiPrivateDockerRegistryUsername') ?: System.getenv("DOCKER_NETIFI_USERNAME")
+            password = project.findProperty('netifiPrivateDockerRegistryPassword') ?: System.getenv("DOCKER_NETIFI_PASSWORD")
+        } else {
+            // Public Docker Repo
+            username = project.findProperty('netifiDockerHubUsername') ?: System.getenv("DOCKER_HUB_USERNAME")
+            password = project.findProperty('netifiDockerHubPassword') ?: System.getenv("DOCKER_HUB_PASSWORD")
+        }
+    }
+}
+
+task buildImage(type: DockerBuildImage, dependsOn: build) {
+    dockerFile = new File("${projectDir}/src/docker/Dockerfile")
+    inputDir = new File("${projectDir}")
+
+    if (version.endsWith('SNAPSHOT') || version.endsWith('RC')) {
+        tags = [ "netifi.azurecr.io/proteus:${artifactVersion}".toString() ]
+    } else {
+        if (project.hasProperty('tagLatest') && project.property('tagLatest').toBoolean()) {
+            tags = [ 'netifi/proteus:latest', "netifi/proteus:${version}".toString() ]
+        } else {
+            tags = [ "netifi/proteus:${version}".toString() ]
+        }
+    }
+}
+
+task pushImage(type: DockerPushImage, dependsOn: buildImage) {
+    if (version.endsWith('SNAPSHOT') || version.endsWith('RC')) {
+        imageName = "netifi.azurecr.io/proteus"
+    } else {
+        imageName = "netifi/proteus"
+    }
+}
+
+// Docker Configuration
+task createDockerStartScripts(type: CreateStartScripts) {
+    mainClassName = startScripts.mainClassName
+    classpath = startScripts.classpath
+    outputDir = new File("${buildDir}/dockerStartScripts")
+    optsEnvironmentVar = startScripts.optsEnvironmentVar
+    applicationName = "${application.applicationName}-docker"
+    defaultJvmOpts = [
+            "-Dio.netty.native.workdir=/opt/netifi/${project.name}-tmp",
+            "-Dnetifi.broker.accessKeyStorePath=/opt/netifi/${project.name}-tmp",
+            "-Xlog:gc:/opt/netifi/${project.name}-tmp/gc.log::filecount=10,filesize=100M",
+            '-XX:+UseCGroupMemoryLimitForHeap',
+            "-XX:HeapDumpPath=/opt/netifi/${project.name}-tmp"
+    ].plus(project.ext.commonJvmArgs)
+}
+
+build.dependsOn createDockerStartScripts
+
+
+// Code Deploy Configuration
+task createCodeDeployStartScripts(type: CreateStartScripts) {
+    mainClassName = startScripts.mainClassName
+    classpath = startScripts.classpath
+    outputDir = new File("${buildDir}/codeDeployStartScripts")
+    applicationName = "${application.applicationName}-codedeploy"
+    optsEnvironmentVar = startScripts.optsEnvironmentVar
+    defaultJvmOpts = [
+            "-Xlog:gc:/opt/netifi/${project.name}-codedeploy-${project.version}-tmp/gc.log::filecount=10,filesize=100M",
+            '-Xms256m',
+            '-Xmx256m',
+            "-XX:HeapDumpPath=/opt/netifi/${project.name}-codedeploy-${project.version}-tmp",
+            '-XX:MaxDirectMemorySize=256m',
+            '-XX:MaxMetaspaceSize=64m',
+            '-XX:MetaspaceSize=64m',
+            '-XX:MaxRAM=650m'
+    ].plus(project.ext.commonJvmArgs)
+}
+
+build.dependsOn createCodeDeployStartScripts
+
+task copyTemplates(type: Copy) {
+    from 'src/codeDeploy'
+    into "$buildDir/codeDeploy"
+    rename 'systemd.service', "netifi-${project.name}.service"
+    expand(project: project)
+}
+
+distributions {
+    main {
+        baseName = "${application.applicationName}"
+    }
+    docker {
+        baseName = "${application.applicationName}-docker"
+        contents {
+            from (jar) {
+                into 'lib'
+            }
+            from (configurations.runtime) {
+                into 'lib'
+            }
+            from ("${projectDir}/src/dist")
+            from (createDockerStartScripts) {
+                into 'bin'
+                fileMode = 0755
+            }
+        }
+    }
+    codeDeploy {
+        baseName = "${application.applicationName}-codedeploy"
+        contents {
+            from (copyTemplates) {
+                into '/'
+            }
+            from (configurations.runtime) {
+                into 'lib'
+            }
+            from (jar) {
+                into 'lib'
+            }
+            from ("${projectDir}/src/dist")
+            from (createCodeDeployStartScripts) {
+                into 'bin'
+                fileMode = 0755
+            }
+        }
+    }
+}
+
+dockerDistTar {
+    version = ''
+}
+
+dockerDistZip {
+    enabled = false
+}
+
+codeDeployDistTar {
+    enabled = false
+}
+
+codeDeployDistZip {
+    destinationDirectory = new File("${project.buildDir}/${project.distsDirName}/codedeploy")
 }

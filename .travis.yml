@@ -3,6 +3,8 @@ sudo: required
 jdk:
 - openjdk11
 install: true
+services:
+  - docker
 before_install:
 - sudo add-apt-repository ppa:maarten-fonville/protobuf -y
 - sudo apt-get update -y

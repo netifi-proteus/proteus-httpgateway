@@ -72,6 +72,37 @@ subprojects {
             }
         }
     }
+
+    // Build Source Jarst
+    def sourcesJarMap = [name: 'sourcesJar', type: Jar, dependsOn: classes]
+    project.tasks.create(sourcesJarMap, {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+        version = "${project.version}"
+    })
+
+    // Build Javadoc Jars
+    def javadocJarMap = [name: 'javadocJar', type: Jar, dependsOn: javadoc]
+    project.tasks.create(javadocJarMap, {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+        version = "${project.version}"
+    })
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+            }
+        }
+    }
 }
 
 apply from: "artifactory.gradle"

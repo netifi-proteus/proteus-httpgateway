@@ -1,0 +1,25 @@
+version: 0.0
+os: linux
+files:
+  - source: ./${project.name}-codedeploy-${project.version}
+    destination: /opt/netifi/${project.name}-codedeploy-${project.version}
+  - source: ./files/netifi-${project.name}.service
+    destination: /etc/systemd/system
+permissions:
+  - object: /etc/systemd/system/netifi-${project.name}.service
+    owner: root
+    group: root
+    mode: 664
+    type:
+      - file
+hooks:
+  ApplicationStop:
+    - location: scripts/application_stop.sh
+  AfterInstall:
+    - location: scripts/after_install.sh
+  ApplicationStart:
+    - location: scripts/application_start.sh
+  AfterBlockTraffic:
+    - location: scripts/after_block_traffic.sh
+  AfterAllowTraffic:
+    - location: scripts/after_allow_traffic.sh
