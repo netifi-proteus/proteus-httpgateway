@@ -18,13 +18,13 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [[ "$TRAVIS_BRANCH" == release/* ]
     # Release Branch
     echo -e 'Build Branch for Release => Branch ['$TRAVIS_BRANCH']'
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    ./gradlew -PversionSuffix="-RC" clean build pushImage --stacktrace
+    ./gradlew -PversionSuffix="-RC" clean build artifactoryPublish pushImage --stacktrace
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
     # Master Branch
     echo -e 'Build Master for Release => Branch ['$TRAVIS_BRANCH']'
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     export ORG_GRADLE_PROJECT_isRelease=true
-    ./gradlew clean build dockerPush --stacktrace --refresh-dependencies
+    ./gradlew clean build --stacktrace --refresh-dependencies
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
     # Tag
     echo -e 'Build Tag for Release => Tag ['$TRAVIS_TAG']'
