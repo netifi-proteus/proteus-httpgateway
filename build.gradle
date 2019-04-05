@@ -2,25 +2,101 @@ buildscript {
     configurations.classpath {
         resolutionStrategy.activateDependencyLocking()
     }
+    repositories {
+        jcenter()
+        maven {
+            url "https://dl.bintray.com/netifi/netifi-oss"
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+        }
+    }
+    dependencies {
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.8.1"
+    }
 }
 
 plugins {
+    id 'com.gradle.build-scan' version '2.0.2' // declare before any other plugin
     id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
+    id "com.github.hierynomus.license" version '0.15.0'
+    id 'com.palantir.git-version' version '0.12.0-rc2'
+}
+
+buildScan {
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+}
+
+
+def details = versionDetails()
+def versionSuffix = ""
+def buildNumber = "${System.getenv("BUILD_NUMBER") ?: "dev"}"
+def tmpArtifactVersion = "${project.version}"
+
+if (details.branchName != null) {
+    if (details.branchName.startsWith("develop")) {
+        versionSuffix = "-SNAPSHOT"
+        tmpArtifactVersion += "-${buildNumber}-SNAPSHOT"
+    } else if (details.branchName.startsWith("release")) {
+        versionSuffix = "-RC"
+        tmpArtifactVersion += "-${buildNumber}-RC"
+    } else if (details.branchName.split("/").size() > 1) {
+        versionSuffix = "-${details.branchName.replace("/","-")}-SNAPSHOT"
+        tmpArtifactVersion += "-${details.branchName.replace("/","-")}-${buildNumber}-SNAPSHOT"
+    }
 }
 
 allprojects {
     dependencyLocking {
         lockAllConfigurations()
     }
+
+    repositories {
+        jcenter()
+        maven {
+            url "https://dl.bintray.com/netifi/netifi-oss"
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+        }
+        maven {
+            url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+            credentials {
+                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
+                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+            }
+        }
+    }
 }
 
 subprojects {
     apply plugin: 'idea'
     apply plugin: 'java'
-
-    group 'io.netifi.proteus.httpgateway'
-    version '1.6.0'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'com.jfrog.artifactory'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
     apply from: '../dependency-management.gradle'
+//    apply plugin: 'license'
+
+    project.version += project.hasProperty('versionSuffix') ? project.property('versionSuffix') : ''
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -52,4 +128,42 @@ subprojects {
             }
         }
     }
+
+    ext {
+        artifactVersion = "${tmpArtifactVersion}"
+    }
+
+    // Build Source Jarst
+    def sourcesJarMap = [name: 'sourcesJar', type: Jar, dependsOn: classes]
+    project.tasks.create(sourcesJarMap, {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+        version = "${project.version}"
+    })
+
+    // Build Javadoc Jars
+    def javadocJarMap = [name: 'javadocJar', type: Jar, dependsOn: javadoc]
+    project.tasks.create(javadocJarMap, {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+        version = "${project.version}"
+    })
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+            }
+        }
+    }
 }
+
+apply from: "artifactory.gradle"
+apply from: "bintray.gradle"
