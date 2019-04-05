@@ -4,11 +4,11 @@
 com.google.protobuf:protobuf-java:3.6.1
 com.typesafe:config:1.3.3
 io.micrometer:micrometer-core:1.0.6
-io.netifi.proteus:proteus-auth:1.6.0-RC
-io.netifi.proteus:proteus-client:1.6.0-RC
-io.netifi.proteus:proteus-common:1.6.0-RC
-io.netifi.proteus:proteus-discovery:1.6.0-RC
-io.netifi.proteus:proteus-frames:1.6.0-RC
+io.netifi.proteus:proteus-auth:1.6.0
+io.netifi.proteus:proteus-client:1.6.0
+io.netifi.proteus:proteus-common:1.6.0
+io.netifi.proteus:proteus-discovery:1.6.0
+io.netifi.proteus:proteus-frames:1.6.0
 io.netty:netty-buffer:4.1.33.Final
 io.netty:netty-codec-http2:4.1.33.Final
 io.netty:netty-codec-http:4.1.33.Final

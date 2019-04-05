@@ -1,0 +1,17 @@
+[Unit]
+Description=Netifi ${project.name} Service
+After=syslog.target
+
+[Service]
+User=netifi
+Group=netifi
+SuccessExitStatus=143
+EnvironmentFile=-/opt/netifi/config/${project.name}.env
+ExecStart=/opt/netifi/${project.name}-codedeploy-${project.version}/bin/${project.name}-codedeploy -fg
+WorkingDirectory=/opt/netifi/${project.name}-codedeploy-${project.version}
+Restart=on-failure
+RestartSec=15s
+MemoryMax=650M
+
+[Install]
+WantedBy=multi-user.target
