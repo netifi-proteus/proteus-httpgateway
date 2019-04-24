@@ -25,6 +25,7 @@ buildscript {
     dependencies {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.8.1"
+        classpath 'com.google.gradle:osdetector-gradle-plugin:1.6.2'
     }
 }
 
@@ -93,6 +94,7 @@ subprojects {
     apply plugin: 'com.jfrog.artifactory'
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
+    apply plugin: 'com.google.osdetector'
     apply from: '../dependency-management.gradle'
 //    apply plugin: 'license'
 
