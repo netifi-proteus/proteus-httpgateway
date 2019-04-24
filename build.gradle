@@ -4,23 +4,6 @@ buildscript {
     }
     repositories {
         jcenter()
-        maven {
-            url "https://dl.bintray.com/netifi/netifi-oss"
-        }
-        maven {
-            url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
-            credentials {
-                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
-            }
-        }
-        maven {
-            url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
-            credentials {
-                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
-            }
-        }
     }
     dependencies {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
@@ -73,15 +56,15 @@ allprojects {
         maven {
             url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
             credentials {
-                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                username = "${netifiArtifactoryUsername}"
+                password = "${netifiArtifactoryPassword}"
             }
         }
         maven {
             url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
             credentials {
-                username = project.findProperty('netifiArtifactoryUsername') ?: System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                password = project.findProperty('netifiArtifactoryPassword') ?: System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                username = "${netifiArtifactoryUsername}"
+                password = "${netifiArtifactoryPassword}"
             }
         }
     }
@@ -117,15 +100,15 @@ subprojects {
             maven {
                 url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
                 credentials {
-                    username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                    password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                    username = "${netifiArtifactoryUsername}"
+                    password = "${netifiArtifactoryPassword}"
                 }
             }
             maven {
                 url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
                 credentials {
-                    username = project.hasProperty('netifiArtifactoryUsername') ? project.property('netifiArtifactoryUsername') : System.getenv('NETIFI_ARTIFACTORY_USERNAME')
-                    password = project.hasProperty('netifiArtifactoryPassword') ? project.property('netifiArtifactoryPassword') : System.getenv('NETIFI_ARTIFACTORY_PASSWORD')
+                    username = "${netifiArtifactoryUsername}"
+                    password = "${netifiArtifactoryPassword}"
                 }
             }
         }
