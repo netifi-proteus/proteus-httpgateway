@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:x86_64-ubuntu-jdk-11.0.1.13-slim
+FROM adoptopenjdk/openjdk11:x86_64-ubuntu-jdk-11.0.2.9-slim
 
 LABEL maintainer="support@netifi.com"
 LABEL author="Netifi Proteus Team"

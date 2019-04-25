@@ -3,7 +3,13 @@ buildscript {
         resolutionStrategy.activateDependencyLocking()
     }
     repositories {
-        jcenter()
+        maven {
+            url 'https://sonatype.netifiinc.com/repository/netifi-plugin-group/'
+            credentials {
+                username = "${netifiReadOnlyUsername}"
+                password = "${netifiReadOnlyPassword}"
+            }
+        }
     }
     dependencies {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
@@ -49,22 +55,39 @@ allprojects {
     }
 
     repositories {
-        jcenter()
         maven {
-            url "https://dl.bintray.com/netifi/netifi-oss"
-        }
-        maven {
-            url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
+            url 'https://sonatype.netifiinc.com/repository/maven-central/'
             credentials {
-                username = "${netifiArtifactoryUsername}"
-                password = "${netifiArtifactoryPassword}"
+                username = "${netifiReadOnlyUsername}"
+                password = "${netifiReadOnlyPassword}"
             }
         }
         maven {
-            url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
+            url 'https://sonatype.netifiinc.com/repository/jcenter/'
             credentials {
-                username = "${netifiArtifactoryUsername}"
-                password = "${netifiArtifactoryPassword}"
+                username = "${netifiReadOnlyUsername}"
+                password = "${netifiReadOnlyPassword}"
+            }
+        }
+        maven {
+            url 'https://sonatype.netifiinc.com/repository/netifi-oss/'
+            credentials {
+                username = "${netifiReadOnlyUsername}"
+                password = "${netifiReadOnlyPassword}"
+            }
+        }
+        maven {
+            url 'https://sonatype.netifiinc.com/repository/netifi-artifactory-libs-release-local/'
+            credentials {
+                username = "${netifiReadOnlyUsername}"
+                password = "${netifiReadOnlyPassword}"
+            }
+        }
+        maven {
+            url 'https://sonatype.netifiinc.com/repository/netifi-artifactory-libs-snapshot-local/'
+            credentials {
+                username = "${netifiReadOnlyUsername}"
+                password = "${netifiReadOnlyPassword}"
             }
         }
     }
@@ -89,29 +112,6 @@ subprojects {
     compileTestJava {
         sourceCompatibility = 11
         targetCompatibility = 11
-    }
-
-    repositories {
-        repositories {
-            jcenter()
-            maven {
-                url "https://dl.bintray.com/netifi/netifi-oss"
-            }
-            maven {
-                url = 'https://artifactory.netifiinc.com/artifactory/libs-snapshot-local'
-                credentials {
-                    username = "${netifiArtifactoryUsername}"
-                    password = "${netifiArtifactoryPassword}"
-                }
-            }
-            maven {
-                url = 'https://artifactory.netifiinc.com/artifactory/libs-release-local'
-                credentials {
-                    username = "${netifiArtifactoryUsername}"
-                    password = "${netifiArtifactoryPassword}"
-                }
-            }
-        }
     }
 
     ext {

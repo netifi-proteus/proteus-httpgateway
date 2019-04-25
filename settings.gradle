@@ -1,5 +1,16 @@
+pluginManagement {
+    repositories {
+        maven {
+            url 'https://sonatype.netifiinc.com/repository/netifi-plugin-group/'
+            credentials {
+                username = "${netifiReadOnlyUsername}"
+                password = "${netifiReadOnlyPassword}"
+            }
+        }
+    }
+}
+
 rootProject.name = 'proteus-httpgateway'
 
 include 'proteus-httpgateway'
 include 'proteus-httpgateway-idl'
-
