@@ -39,20 +39,6 @@ jar {
     }
 }
 
-
-// Artifact Publishing
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact distZip
-            artifact sourcesJar
-            artifact javadocJar
-        }
-    }
-}
-
-
-
 mainClassName = 'com.netifi.proteus.httpgateway.Main'
 
 // Properties
@@ -181,12 +167,12 @@ docker {
         if (version.endsWith('SNAPSHOT') || version.endsWith('RC')) {
             // Private Docker Repo
             url = 'https://netifi.azurecr.io'
-            username = project.findProperty('netifiPrivateDockerRegistryUsername') ?: System.getenv("DOCKER_NETIFI_USERNAME")
-            password = project.findProperty('netifiPrivateDockerRegistryPassword') ?: System.getenv("DOCKER_NETIFI_PASSWORD")
+            username = "${netifiPrivateDockerRegistryUsername}"
+            password = "${netifiPrivateDockerRegistryPassword}"
         } else {
             // Public Docker Repo
-            username = project.findProperty('netifiDockerHubUsername') ?: System.getenv("DOCKER_HUB_USERNAME")
-            password = project.findProperty('netifiDockerHubPassword') ?: System.getenv("DOCKER_HUB_PASSWORD")
+            username = "${netifiDockerHubUsername}"
+            password = "${netifiDockerHubPassword}"
         }
     }
 }

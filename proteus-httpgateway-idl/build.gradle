@@ -49,3 +49,16 @@ idea {
 clean {
     delete 'src/generated/main'
 }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}
+
+apply from: "../artifactory.gradle"
+apply from: "../bintray.gradle"
