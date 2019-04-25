@@ -56,14 +56,14 @@ allprojects {
 
     repositories {
         maven {
-            url 'https://sonatype.netifiinc.com/repository/maven-central/'
+            url 'https://sonatype.netifiinc.com/repository/jcenter/'
             credentials {
                 username = "${netifiReadOnlyUsername}"
                 password = "${netifiReadOnlyPassword}"
             }
         }
         maven {
-            url 'https://sonatype.netifiinc.com/repository/jcenter/'
+            url 'https://sonatype.netifiinc.com/repository/maven-central/'
             credentials {
                 username = "${netifiReadOnlyUsername}"
                 password = "${netifiReadOnlyPassword}"
@@ -96,8 +96,6 @@ allprojects {
 subprojects {
     apply plugin: 'idea'
     apply plugin: 'java'
-    apply plugin: 'com.jfrog.bintray'
-    apply plugin: 'com.jfrog.artifactory'
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
     apply plugin: 'com.google.osdetector'
@@ -138,17 +136,4 @@ subprojects {
         archives sourcesJar
         archives javadocJar
     }
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                artifact sourcesJar
-                artifact javadocJar
-            }
-        }
-    }
 }
-
-apply from: "artifactory.gradle"
-apply from: "bintray.gradle"

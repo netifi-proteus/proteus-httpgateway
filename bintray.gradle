@@ -15,34 +15,32 @@
  */
 
 if (project.hasProperty('bintrayUser') && project.hasProperty('bintrayKey')) {
+    apply plugin: 'com.jfrog.bintray'
+    plugins.withId('com.jfrog.bintray') {
+        bintray {
+            user = project.property('bintrayUser')
+            key = project.property('bintrayKey')
 
-    subprojects {
-        plugins.withId('com.jfrog.bintray') {
-            bintray {
-                user = project.property('bintrayUser')
-                key = project.property('bintrayKey')
+            publications = ['mavenJava']
 
-                publications = ['mavenJava']
+            //dryRun = true
+            publish = (osdetector.os == 'osx')
+            override = true
 
-                //dryRun = true
-                publish = (osdetector.os == 'osx')
-                override = true
+            pkg {
+                repo = 'netifi-oss'
+                name = project.name
+                userOrg = 'netifi'
+                desc = "${project.description}"
+                websiteUrl = 'https://github.com/netifi-proteus/proteus-httpgateway'
+                issueTrackerUrl = 'https://github.com/netifi-proteus/proteus-httpgateway/issues'
+                vcsUrl = 'https://github.com/netifi-proteus/proteus-httpgateway.git'
+                licenses = ['Apache-2.0']
+                githubRepo = 'netifi-proteus/proteus-httpgateway'
+                githubReleaseNotesFile = 'CHANGELOG.md'
 
-                pkg {
-                    repo = 'netifi-oss'
-                    name = project.name
-                    userOrg = 'netifi'
-                    desc = "${project.description}"
-                    websiteUrl = 'https://github.com/netifi-proteus/proteus-httpgateway'
-                    issueTrackerUrl = 'https://github.com/netifi-proteus/proteus-httpgateway/issues'
-                    vcsUrl = 'https://github.com/netifi-proteus/proteus-httpgateway.git'
-                    licenses = ['Apache-2.0']
-                    githubRepo = 'netifi-proteus/proteus-httpgateway'
-                    githubReleaseNotesFile = 'CHANGELOG.md'
-
-                    version {
-                        name = "$project.version".toString()
-                    }
+                version {
+                    name = "$project.version".toString()
                 }
             }
         }

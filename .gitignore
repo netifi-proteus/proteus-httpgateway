@@ -130,3 +130,5 @@ gradle-app.setting
 
 
 # End of https://www.gitignore.io/api/java,linux,macos,gradle,intellij+all
+
+generated/
