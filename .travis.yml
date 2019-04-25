@@ -4,7 +4,7 @@ jdk:
 - openjdk11
 install: true
 services:
-  - docker
+- docker
 before_install:
 - sudo add-apt-repository ppa:maarten-fonville/protobuf -y
 - sudo apt-get update -y
@@ -18,4 +18,7 @@ cache:
   - "$HOME/.gradle/wrapper/"
   - "$HOME/.m2"
 env:
-  global:
+  global: 
+notifications:
+  slack:
+    secure: hiaEF8Bv6ZjZhw9vRjQ+5zbmZ/C8ui+54cMP7/4XTT/yZWkIa1yzNq2/3DXkkE3Kg7d/2FCLFlmKfpYvhs/36wtu8Dr3mq2Rf8velvO82qPzh9V0H/wu89e9lRfGE6IQ2rTbgzgCg5Q686A26giq+rIB0nSv+U6lql7kRMcgPPqkYBixKUeHpESMiR9fh9DrxZkY4Uk+CCN7ZBBN6kl5K/99dKIHB25aGbv2YarTlT93bZ3r5uLRkLb5ZE/gVT3CVbhi8fTe4a1o7ZMkwEL8OUMBa0JOygPs0BoaNZ1TTcMFkApqxsexN2d+6whmEEpKCFfk4swsE+WbG2IB/9/sl1YT0YGSgT73Kq1DCbV6sYrzqj8PySFxgmZBVbnsVuXN7leSjBae8TK0IIvH4EoVtcheIzeBIeLNIi04DtwXyqi/syeMlVzXy/uCPREYrcKzfsoqSRiPMNMf4nagibaSca10B7CxOe2ZanFXeDpoMwG42YxfLgACUlTdm/FCugCF2M4BAcr5zod1BMBV+yRu/aSZLp8cgnuyOQtRiFyUVXVbXakt/y/aj8X+DIiLbdkvHEMOp5Ki9vUqpA3+/XMmRT7wvNA2l8B0L1GauabcDcqYNPM3cXjadmIOlAqz5F+asKN0B5AJOf54RhytSVKIaAmAFaI88iDXdkNSjGjzt08=

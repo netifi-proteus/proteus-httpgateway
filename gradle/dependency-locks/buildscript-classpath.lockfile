@@ -7,6 +7,8 @@ com.fasterxml.jackson.core:jackson-annotations:2.9.0
 com.fasterxml.jackson.core:jackson-core:2.9.5
 com.fasterxml.jackson.core:jackson-databind:2.9.5
 com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin:0.15.0
+com.google.code.findbugs:jsr305:3.0.2
+com.google.gradle:osdetector-gradle-plugin:1.6.2
 com.google.guava:guava:20.0
 com.googlecode.javaewah:JavaEWAH:0.7.9
 com.gradle.build-scan:com.gradle.build-scan.gradle.plugin:2.0.2
@@ -29,6 +31,7 @@ gradle.plugin.com.palantir.gradle.gitversion:gradle-git-version:0.12.0-rc2
 io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.0.7.RELEASE
 io.spring.gradle:dependency-management-plugin:1.0.7.RELEASE
 junit:junit:3.8.1
+kr.motd.maven:os-maven-plugin:1.6.2
 nekohtml:nekohtml:1.9.6.2
 nekohtml:xercesMinimal:1.9.6.2
 net.sf.ezmorph:ezmorph:1.0.6

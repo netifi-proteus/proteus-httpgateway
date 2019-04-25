@@ -6,11 +6,11 @@ plugins {
 sourceCompatibility = 1.8
 
 dependencies {
-    compile "io.rsocket.rpc:rsocket-rpc-core:$rsocketRpcVersion"
-    compile "io.rsocket.rpc:rsocket-rpc-protobuf:$rsocketRpcVersion"
+    compile "io.rsocket.rpc:rsocket-rpc-core:${rsocketRpcVersion}"
+    compile "io.rsocket.rpc:rsocket-rpc-protobuf:${rsocketRpcVersion}"
     compile "com.google.protobuf:protobuf-java:${protobufVersion}"
 
-    protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:$rsocketRpcVersion"
+    protobuf "io.rsocket.rpc:rsocket-rpc-protobuf-idl:${rsocketRpcVersion}"
 }
 
 protobuf {
@@ -22,7 +22,7 @@ protobuf {
 
     plugins {
         rsocketRpc {
-            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf:$rsocketRpcVersion"
+            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf:${rsocketRpcVersion}"
         }
         generateProtoTasks {
             ofSourceSet('main')*.plugins {
