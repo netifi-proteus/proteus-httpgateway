@@ -1,4 +1,6 @@
 # Netifi Proteus HTTP Gateway
+This project has moved to https://github.com/netifi/netifi-httpgateway
+
 [![Build Status](https://travis-ci.org/netifi-proteus/proteus-httpgateway.svg?branch=master)](https://travis-ci.org/netifi-proteus/proteus-httpgateway)
 
 An API Gateway that allows bridging HTTP with [Netifi Proteus](https://www.netifi.com/proteus.html).
